@@ -37,10 +37,23 @@ public class SaveTargetTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    [InlineData(@"Z:
-o*such?drivex")]
-    public void EnsureFolder_FallsBackWhenFolderCannotBeCreated(string configured)
+    public void EnsureFolder_FallsBackWhenFolderIsBlank(string configured)
     {
         Assert.Equal("fallback", SaveTarget.EnsureFolder(configured, "fallback"));
+    }
+
+    [Fact]
+    public void EnsureFolder_FallsBackWhenFolderCannotBeCreated()
+    {
+        var file = Path.GetTempFileName();
+        try
+        {
+            // A folder cannot be created under an existing file.
+            Assert.Equal("fallback", SaveTarget.EnsureFolder(Path.Combine(file, "sub"), "fallback"));
+        }
+        finally
+        {
+            File.Delete(file);
+        }
     }
 }

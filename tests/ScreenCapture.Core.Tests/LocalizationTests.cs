@@ -2,6 +2,7 @@ using System.Collections;
 using System.ComponentModel;
 using System.Globalization;
 using System.Resources;
+using System.Text.RegularExpressions;
 using ScreenCapture.Core.Localization;
 
 namespace ScreenCapture.Core.Tests;
@@ -40,6 +41,26 @@ public sealed class LocalizationTests : IDisposable
             }
         }
     }
+
+    [Fact]
+    public void EveryLanguage_HasTheSamePlaceholdersAsNeutral()
+    {
+        var rm = Rm();
+        var neutral = Set(rm, CultureInfo.InvariantCulture, false);
+        foreach (var lang in Loc.AvailableLanguages().Where(l => l.Code != "en"))
+        {
+            var set = Set(rm, CultureInfo.GetCultureInfo(lang.Code), false);
+            foreach (var (key, value) in neutral)
+            {
+                if (!set.TryGetValue(key, out var translated)) continue;
+                Assert.True(Placeholders(value).SetEquals(Placeholders(translated)),
+                    $"{lang.Code}/{key} placeholders differ from the neutral resource");
+            }
+        }
+    }
+
+    private static HashSet<string> Placeholders(string text) =>
+        Regex.Matches(text, @"\{\d+(?:[,:][^}]*)?\}").Select(m => m.Value).ToHashSet();
 
     [Fact]
     public void AvailableLanguages_ContainsEnglishAndUkrainian()
