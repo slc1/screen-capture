@@ -1,5 +1,7 @@
 # ScreenCapture
 
+Version 0.1.0.
+
 A Windows tray screenshot tool: capture an area or the whole screen, mark it up, then copy or save it. Built with .NET 10, Avalonia and SkiaSharp. Requires Windows 10 1809+ or Windows 11 (x64).
 
 ## Features
@@ -7,7 +9,7 @@ A Windows tray screenshot tool: capture an area or the whole screen, mark it up,
 - Tray icon; left or right click opens the menu (Capture area, Capture full screen, Settings, Exit).
 - Global hotkeys: **Ctrl+Alt+5** captures an area, **Ctrl+Alt+6** captures the monitor under the cursor.
 - Area capture freezes and dims the screen; drag a rectangle (size shown in pixels), Esc cancels. Selection stays within one monitor.
-- Editor tools: Arrow, Line, Rectangle, Marker, Text, Blur. Six to eight preset colors and three stroke widths.
+- Editor tools: Arrow, Line, Rectangle, Marker, Text, Blur. 8 preset colors and three stroke widths.
 - Annotations are objects: select, move or delete them while the editor is open.
 - Undo/redo: Ctrl+Z, Ctrl+Y or Ctrl+Shift+Z.
 - Copy (Ctrl+C, primary button): puts the image with annotations on the clipboard and closes the editor.
@@ -34,13 +36,15 @@ dotnet run --project src/ScreenCapture.App
 dotnet test ScreenCapture.sln
 ```
 
+The `ScreenCapture.Platform.Windows.Tests` project touches real system state: it overwrites the clipboard and writes (then removes) a value under `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`.
+
 ## Publish
 
 ```
 pwsh ./publish.ps1
 ```
 
-Runs all tests, publishes a self-contained single-file win-x64 exe, and creates `artifacts/ScreenCapture-win-x64.zip`. Unzip anywhere and run `ScreenCapture.App.exe`; no .NET install is needed.
+Runs the Core and App tests (not the Platform.Windows tests, see above), publishes a self-contained single-file win-x64 exe, and creates `artifacts/ScreenCapture-win-x64.zip`. Unzip anywhere and run `ScreenCapture.App.exe`; no .NET install is needed.
 
 ## Adding a language
 

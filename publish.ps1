@@ -1,6 +1,10 @@
 <#
-Builds the team package: runs all tests, publishes a self-contained single-file
-win-x64 exe, and zips it.
+Builds the team package: runs the Core and App tests, publishes a self-contained
+single-file win-x64 exe, and zips it.
+
+The Platform.Windows tests are skipped on purpose: they overwrite the clipboard and
+write to HKCU\...\Run. Run them by hand with
+    dotnet test tests/ScreenCapture.Platform.Windows.Tests
 
 Run (Windows PowerShell 5.1 or pwsh), from any folder:
     pwsh ./publish.ps1
@@ -21,7 +25,8 @@ function Invoke-Dotnet {
     if ($LASTEXITCODE -ne 0) { throw "dotnet $($args -join ' ') failed with exit code $LASTEXITCODE" }
 }
 
-Invoke-Dotnet test ScreenCapture.sln -c Release
+Invoke-Dotnet test tests/ScreenCapture.Core.Tests -c Release
+Invoke-Dotnet test tests/ScreenCapture.App.Tests -c Release
 
 $publishDir = Join-Path $PSScriptRoot 'artifacts/publish'
 $zipPath = Join-Path $PSScriptRoot 'artifacts/ScreenCapture-win-x64.zip'
