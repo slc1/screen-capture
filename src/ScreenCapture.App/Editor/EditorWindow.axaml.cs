@@ -4,15 +4,17 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
+using Avalonia.Platform.Storage;
 using ScreenCapture.App.Common;
 using ScreenCapture.App.Services;
 using ScreenCapture.Core.Annotations;
 using ScreenCapture.Core.Editing;
+using ScreenCapture.Core.Export;
 using SkiaSharp;
 
 namespace ScreenCapture.App.Editor;
 
-public partial class EditorWindow : Window
+public partial class EditorWindow : Window, IEditorHost
 {
     public const double ToolbarHeight = 44;
 
@@ -27,7 +29,7 @@ public partial class EditorWindow : Window
     {
         _image = image;
         _session = new EditorSession(image);
-        DataContext = new EditorViewModel(_session);
+        DataContext = new EditorViewModel(_session, services, this);
         Surface.Session = _session;
         Surface.TextRequested += BeginText;
         PlaceOnScreen(image.Width, image.Height);
@@ -38,6 +40,15 @@ public partial class EditorWindow : Window
         base.OnKeyDown(e);
         if (e.Handled || _session is null || _textEdit is not null)
             return;
+
+        if (e.KeyModifiers == KeyModifiers.Control && e.Key is Key.C or Key.S && DataContext is EditorViewModel vm)
+        {
+            var command = e.Key == Key.C ? vm.CopyCommand : vm.SaveCommand;
+            if (command.CanExecute(null))
+                command.Execute(null);
+            e.Handled = true;
+            return;
+        }
 
         var ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
         var shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
@@ -54,6 +65,26 @@ public partial class EditorWindow : Window
 
         e.Handled = true;
     }
+
+    void IEditorHost.CommitPendingText() => CommitText();
+
+    void IEditorHost.CloseEditor() => Close();
+
+    async Task<string?> IEditorHost.PickSavePathAsync(string folder, string suggestedName, ImageFormatKind defaultFormat)
+    {
+        var png = new FilePickerFileType("PNG") { Patterns = ["*.png"] };
+        var jpg = new FilePickerFileType("JPG") { Patterns = ["*.jpg", "*.jpeg"] };
+        var result = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            SuggestedFileName = suggestedName,
+            SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(folder),
+            DefaultExtension = defaultFormat == ImageFormatKind.Jpg ? "jpg" : "png",
+            FileTypeChoices = defaultFormat == ImageFormatKind.Jpg ? [jpg, png] : [png, jpg],
+        });
+        return result?.TryGetLocalPath();
+    }
+
+    Task<int?> IEditorHost.AskJpegQualityAsync(int initial) => JpegQualityDialog.ShowAsync(this, initial);
 
     protected override void OnClosed(EventArgs e)
     {
