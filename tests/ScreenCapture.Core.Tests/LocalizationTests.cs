@@ -77,6 +77,8 @@ public sealed class LocalizationTests : IDisposable
         Assert.Equal("Вихід", Loc.Instance["Tray_Exit"]);
         Assert.Equal("uk", Loc.Instance.Language);
         Assert.Contains("Item[]", names);
+        // Avalonia bindings refresh an indexer on "Item"; WPF-style listeners use "Item[]".
+        Assert.Contains("Item", names);
     }
 
     [Fact]

@@ -36,6 +36,8 @@ public sealed class Loc : INotifyPropertyChanged
         var known = AvailableLanguages().Any(l => l.Code == code);
         Language = known ? code : EnglishCode;
         _culture = Language == EnglishCode ? CultureInfo.InvariantCulture : CultureInfo.GetCultureInfo(Language);
+        // Avalonia bindings refresh an indexer on "Item"; WPF-style listeners use "Item[]".
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Item"));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Item[]"));
     }
 

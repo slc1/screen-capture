@@ -252,6 +252,27 @@ public sealed class EditorSessionTests : IDisposable
     }
 
     [Fact]
+    public void Undo_DuringMove_AbandonsTheMove()
+    {
+        var s = NewSession(EditorTool.Rectangle);
+        Drag(s, new(10, 10), new(50, 40));
+        s.Tool = EditorTool.Select;
+        Drag(s, new(10, 20), new(20, 30));
+        var afterFirstMove = s.Document.Annotations[0];
+
+        s.PointerDown(new(20, 30));
+        s.PointerMove(new(60, 60));
+        s.Document.Undo();
+        s.PointerUp(new(60, 60));
+
+        var restored = Assert.IsType<RectangleAnnotation>(Assert.Single(s.Document.Annotations));
+        Assert.Equal(new SKRect(10, 10, 50, 40), restored.Rect);
+        Assert.True(s.Document.CanRedo);
+        s.Document.Redo();
+        Assert.Equal(afterFirstMove, s.Document.Annotations[0]);
+    }
+
+    [Fact]
     public void Cancel_DuringDraw_DiscardsDraft()
     {
         var s = NewSession(EditorTool.Line);

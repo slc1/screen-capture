@@ -32,6 +32,12 @@ public sealed class EditorSession
         {
             if (SelectedId is { } id && Find(id) is null)
                 SelectedId = null;
+            if (_moveOriginal is { } moving && Find(moving.Id) != moving)
+            {
+                _moveOriginal = null;
+                _movePreview = null;
+            }
+
             OnChanged();
         };
     }
@@ -62,6 +68,14 @@ public sealed class EditorSession
 
     /// <summary>Selection hit tolerance in image pixels; the view keeps it at a constant screen distance.</summary>
     public float HitTolerance { get; set; } = 4f;
+
+    /// <summary>Font size a new text annotation gets at the current width: 16 / 20 / 24 px.</summary>
+    public float TextFontSize => Width switch
+    {
+        StrokeWidth.Thin => 16f,
+        StrokeWidth.Thick => 24f,
+        _ => 20f,
+    };
 
     public Annotation? Draft { get; private set; }
 
@@ -174,7 +188,7 @@ public sealed class EditorSession
         if (string.IsNullOrWhiteSpace(text))
             return;
         Document.Execute(new AddAnnotationCommand(
-            new TextAnnotation(Guid.NewGuid(), Color, Width, position, text, FontSizeFor(Width))));
+            new TextAnnotation(Guid.NewGuid(), Color, Width, position, text, TextFontSize)));
     }
 
     public void ReplaceText(Guid id, string text)
@@ -183,14 +197,6 @@ public sealed class EditorSession
             return;
         Document.Execute(new ReplaceAnnotationCommand(before, before with { Text = text }));
     }
-
-    // Brief: 16 / 20 / 24 px for Thin / Medium / Thick.
-    private static float FontSizeFor(StrokeWidth width) => width switch
-    {
-        StrokeWidth.Thin => 16f,
-        StrokeWidth.Thick => 24f,
-        _ => 20f,
-    };
 
     private Annotation CreateShape(SKPoint end) => Tool switch
     {

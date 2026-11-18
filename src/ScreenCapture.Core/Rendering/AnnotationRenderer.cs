@@ -108,6 +108,14 @@ public static class AnnotationRenderer
         var bottom = Math.Min(original.Height, (int)MathF.Ceiling(b.Rect.Bottom));
         if (right <= left || bottom <= top) return;
 
+        // 32-bit pixels are read straight from memory; a premultiplied pixel that is not fully opaque
+        // still goes through GetPixel so the result stays identical to the per-pixel GetPixel path.
+        var direct = original.ColorType is SKColorType.Bgra8888 or SKColorType.Rgba8888;
+        var swapRb = original.ColorType == SKColorType.Rgba8888;
+        var unpremul = original.AlphaType == SKAlphaType.Unpremul;
+        var pixels = direct ? original.GetPixelSpan() : default;
+        var rowBytes = original.RowBytes;
+
         using var paint = new SKPaint { Style = SKPaintStyle.Fill, IsAntialias = false };
         for (var by = top; by < bottom; by += BlurBlock)
         {
@@ -118,8 +126,22 @@ public static class AnnotationRenderer
                 long r = 0, g = 0, bl = 0, al = 0;
                 for (var y = by; y < by + bh; y++)
                 {
+                    var row = direct ? pixels.Slice(y * rowBytes + bx * 4, bw * 4) : default;
                     for (var x = bx; x < bx + bw; x++)
                     {
+                        if (direct)
+                        {
+                            var i = (x - bx) * 4;
+                            var a = row[i + 3];
+                            if (a == 255 || unpremul)
+                            {
+                                var c0 = row[i];
+                                var c2 = row[i + 2];
+                                r += swapRb ? c0 : c2; g += row[i + 1]; bl += swapRb ? c2 : c0; al += a;
+                                continue;
+                            }
+                        }
+
                         var px = original.GetPixel(x, y);
                         r += px.Red; g += px.Green; bl += px.Blue; al += px.Alpha;
                     }
