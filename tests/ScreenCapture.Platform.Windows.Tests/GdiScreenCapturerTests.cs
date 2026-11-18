@@ -74,4 +74,24 @@ public class GdiScreenCapturerTests(Xunit.Abstractions.ITestOutputHelper output)
         Assert.Contains(monitors, x => x == m.Monitor);
         Assert.Equal(m.Monitor.BoundsPx.Width, m.Image.Width);
     }
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(7)]
+    [InlineData(37)]
+    public void SetOpaque_SetsEveryAlphaByteAndKeepsColour(int length)
+    {
+        var src = Enumerable.Range(0, length).Select(i => (uint)(i * 0x01030507) & 0x7FFFFFFFu).ToArray();
+        var dst = new uint[length];
+        GdiScreenCapturer.SetOpaque(src, dst);
+        for (var i = 0; i < length; i++) Assert.Equal(src[i] | 0xFF000000u, dst[i]);
+    }
+
+    [Fact]
+    public void CaptureMonitorAtCursor_IsOpaque()
+    {
+        using var image = _capturer.CaptureMonitorAtCursor().Image;
+        Assert.Equal(SkiaSharp.SKAlphaType.Opaque, image.AlphaType);
+        Assert.All(image.Pixels.Take(10_000), p => Assert.Equal(255, p.Alpha));
+    }
 }

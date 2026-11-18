@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using SkiaSharp;
 using static ScreenCapture.Platform.Windows.NativeMethods;
@@ -64,6 +65,19 @@ public sealed unsafe class GdiScreenCapturer : IScreenCapturer
         return list;
     }
 
+    /// <summary>
+    /// BitBlt from the screen leaves the alpha byte undefined (usually 0). The Opaque tag alone is not enough:
+    /// Skia still reads that byte when drawing, so Flatten and the blur would turn the image transparent.
+    /// </summary>
+    internal static void SetOpaque(ReadOnlySpan<uint> src, Span<uint> dst)
+    {
+        var mask = new Vector<uint>(0xFF000000u);
+        var i = 0;
+        for (; i <= src.Length - Vector<uint>.Count; i += Vector<uint>.Count)
+            (new Vector<uint>(src[i..]) | mask).CopyTo(dst[i..]);
+        for (; i < src.Length; i++) dst[i] = src[i] | 0xFF000000u;
+    }
+
     private static SKBitmap Capture(SKRectI bounds)
     {
         int w = bounds.Width, h = bounds.Height;
@@ -97,8 +111,7 @@ public sealed unsafe class GdiScreenCapturer : IScreenCapturer
                 var count = w * h;
                 var src = new ReadOnlySpan<uint>((void*)bits, count);
                 var dst = new Span<uint>((void*)bitmap.GetPixels(), count);
-                // BitBlt from the screen leaves alpha undefined; store opaque bytes for later PNG encode.
-                for (var i = 0; i < src.Length; i++) dst[i] = src[i] | 0xFF000000u;
+                SetOpaque(src, dst);
                 return bitmap;
             }
             catch
