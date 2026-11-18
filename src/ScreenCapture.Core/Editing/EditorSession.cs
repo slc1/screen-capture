@@ -190,18 +190,27 @@ public sealed class EditorSession
         if (string.IsNullOrWhiteSpace(text))
             return;
         Document.Execute(new AddAnnotationCommand(
-            new TextAnnotation(Guid.NewGuid(), Color, Width, ClampToImage(position), text, TextFontSize)));
+            KeepOnImage(new TextAnnotation(Guid.NewGuid(), Color, Width, position, text, TextFontSize))));
     }
 
     public void ReplaceText(Guid id, string text)
     {
         if (string.IsNullOrWhiteSpace(text) || Find(id) is not TextAnnotation before || before.Text == text)
             return;
-        Document.Execute(new ReplaceAnnotationCommand(before, before with { Text = text }));
+        Document.Execute(new ReplaceAnnotationCommand(before, KeepOnImage(before with { Text = text })));
     }
 
     private SKPoint ClampToImage(SKPoint p) =>
         new(Math.Clamp(p.X, 0f, Image.Width), Math.Clamp(p.Y, 0f, Image.Height));
+
+    /// <summary>Moves the text so its whole bounds lie on the image (left/top-aligned if it is larger).</summary>
+    private TextAnnotation KeepOnImage(TextAnnotation t)
+    {
+        var b = t.Bounds;
+        var x = Math.Clamp(t.Position.X, 0f, Image.Width - Math.Min(b.Width, Image.Width));
+        var y = Math.Clamp(t.Position.Y, 0f, Image.Height - Math.Min(b.Height, Image.Height));
+        return x == t.Position.X && y == t.Position.Y ? t : t with { Position = new SKPoint(x, y) };
+    }
 
     /// <summary>
     /// The original moved by the pointer delta, with the delta clamped so its bounds keep overlapping the image
@@ -218,9 +227,10 @@ public sealed class EditorSession
     private static float ClampDelta(float delta, float start, float end, float extent)
     {
         var keep = Math.Min(MinVisibleOnMove, Math.Min(end - start, extent));
-        var min = keep - end;
-        var max = extent - keep - start;
-        return min > max ? 0f : Math.Clamp(delta, min, max);
+        // Always allow 0, so an annotation already showing less than `keep` is never moved by a plain click.
+        var min = Math.Min(keep - end, 0f);
+        var max = Math.Max(extent - keep - start, 0f);
+        return Math.Clamp(delta, min, max);
     }
 
     private Annotation CreateShape(SKPoint end) => Tool switch

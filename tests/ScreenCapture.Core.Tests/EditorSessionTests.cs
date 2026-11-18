@@ -417,7 +417,76 @@ public sealed class EditorSessionTests : IDisposable
         s.AddText(new(-20, 300), "hello");
 
         var t = Assert.IsType<TextAnnotation>(Assert.Single(s.Document.Annotations));
-        Assert.Equal(new SKPoint(0, 100), t.Position);
+        Assert.Equal(0, t.Position.X);
+        AssertInsideImage(t.Bounds);
+    }
+
+    [Theory]
+    [InlineData(195, 95)]
+    [InlineData(5000, -5000)]
+    public void AddText_NearOrPastEdge_KeepsWholeTextOnImage(float x, float y)
+    {
+        var s = NewSession(EditorTool.Text);
+        s.AddText(new(x, y), "hello");
+
+        AssertInsideImage(Assert.Single(s.Document.Annotations).Bounds);
+    }
+
+    [Fact]
+    public void ReplaceText_Wider_IsMovedBackOntoImage()
+    {
+        var s = NewSession(EditorTool.Text);
+        s.AddText(new(150, 10), "a");
+        var id = s.Document.Annotations[0].Id;
+
+        s.ReplaceText(id, "a much wider text");
+
+        var t = Assert.IsType<TextAnnotation>(Assert.Single(s.Document.Annotations));
+        Assert.Equal("a much wider text", t.Text);
+        AssertInsideImage(t.Bounds);
+    }
+
+    [Fact]
+    public void SelectClick_OnEdgeHuggingLine_CommitsNothing()
+    {
+        var s = NewSession(EditorTool.Line);
+        Drag(s, new(10, 0), new(100, 0));
+        var line = Assert.Single(s.Document.Annotations);
+
+        s.Tool = EditorTool.Select;
+        s.PointerDown(new(50, 0));
+        Assert.Equal(line.Id, s.SelectedId);
+        s.PointerMove(new(50, 0));
+        s.PointerUp(new(50, 0));
+
+        Assert.Equal(line, Assert.Single(s.Document.Annotations));
+        s.Document.Undo();
+        Assert.False(s.Document.CanUndo);
+    }
+
+    [Fact]
+    public void SelectClick_OnOffImageText_CommitsNothing()
+    {
+        var s = NewSession(EditorTool.Select);
+        var text = new TextAnnotation(Guid.NewGuid(), s.Color, s.Width, new SKPoint(198, 50), "hello", 20f);
+        s.Document.Execute(new AddAnnotationCommand(text));
+
+        s.PointerDown(new(199, 55));
+        Assert.Equal(text.Id, s.SelectedId);
+        s.PointerMove(new(199, 55));
+        s.PointerUp(new(199, 55));
+
+        Assert.Equal(text, Assert.Single(s.Document.Annotations));
+        s.Document.Undo();
+        Assert.False(s.Document.CanUndo);
+    }
+
+    private void AssertInsideImage(SKRect bounds)
+    {
+        Assert.InRange(bounds.Left, 0, _image.Width);
+        Assert.InRange(bounds.Right, 0, _image.Width);
+        Assert.InRange(bounds.Top, 0, _image.Height);
+        Assert.InRange(bounds.Bottom, 0, _image.Height);
     }
 
     [Theory]
