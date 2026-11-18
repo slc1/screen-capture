@@ -34,7 +34,7 @@ public class SettingsStoreTests : IDisposable
             FullScreenHotkey = null,
             DefaultFormat = ImageFormatKind.Jpg,
             JpgQuality = 42,
-            SaveFolder = @"D:\Shots",
+            SaveFolder = @"D:/Shots",
             StartWithWindows = true,
         };
         store.Save(s);
@@ -62,5 +62,83 @@ public class SettingsStoreTests : IDisposable
         Assert.Equal(100, store.Load().Settings.JpgQuality);
         store.Save(Defaults() with { JpgQuality = -5 });
         Assert.Equal(1, store.Load().Settings.JpgQuality);
+    }
+
+    private SettingsLoadResult LoadJson(string json)
+    {
+        Directory.CreateDirectory(_dir);
+        File.WriteAllText(FilePath, json);
+        return new SettingsStore(FilePath, Defaults).Load();
+    }
+
+    private const string Hk = "{ \"Modifiers\": \"Ctrl\", \"Key\": \"F9\" }";
+
+    [Fact]
+    public void Load_JsonNullLiteral_ReturnsDefaultsAndFlag()
+    {
+        var r = LoadJson("null");
+        Assert.True(r.WasCorrupt);
+        Assert.Equal(Defaults(), r.Settings);
+    }
+
+    [Fact]
+    public void Load_NullLanguage_FilledFromDefaultsAndFlag()
+    {
+        var r = LoadJson("{ \"Language\": null, \"SaveFolder\": \"D:/S\", \"AreaHotkey\": null, \"FullScreenHotkey\": null }");
+        Assert.True(r.WasCorrupt);
+        Assert.Equal("en", r.Settings.Language);
+        Assert.Equal(@"D:/S", r.Settings.SaveFolder);
+    }
+
+    [Fact]
+    public void Load_MissingHotkeyProperty_UsesDefault()
+    {
+        var r = LoadJson("{ \"Language\": \"uk\", \"SaveFolder\": \"D:/S\", \"FullScreenHotkey\": null }");
+        Assert.Equal(Defaults().AreaHotkey, r.Settings.AreaHotkey);
+        Assert.Null(r.Settings.FullScreenHotkey);
+    }
+
+    [Fact]
+    public void Load_ExplicitNullHotkey_StaysCleared()
+    {
+        var r = LoadJson("{ \"Language\": \"uk\", \"SaveFolder\": \"D:/S\", \"AreaHotkey\": null, \"FullScreenHotkey\": " + Hk + " }");
+        Assert.False(r.WasCorrupt);
+        Assert.Null(r.Settings.AreaHotkey);
+        Assert.Equal(new Hotkey(HotkeyModifiers.Ctrl, "F9"), r.Settings.FullScreenHotkey);
+    }
+
+    [Fact]
+    public void Load_InvalidHotkey_UsesDefaultAndFlag()
+    {
+        var r = LoadJson("{ \"Language\": \"uk\", \"SaveFolder\": \"D:/S\", \"AreaHotkey\": { \"Modifiers\": \"Ctrl\", \"Key\": null }, \"FullScreenHotkey\": null }");
+        Assert.True(r.WasCorrupt);
+        Assert.Equal(Defaults().AreaHotkey, r.Settings.AreaHotkey);
+    }
+
+    [Fact]
+    public void Load_UndefinedFormat_UsesDefaultAndFlag()
+    {
+        var r = LoadJson("{ \"Language\": \"uk\", \"SaveFolder\": \"D:/S\", \"DefaultFormat\": 99, \"AreaHotkey\": null, \"FullScreenHotkey\": null }");
+        Assert.True(r.WasCorrupt);
+        Assert.Equal(ImageFormatKind.Png, r.Settings.DefaultFormat);
+    }
+
+    [Fact]
+    public void Load_LockedFile_ReturnsDefaultsAndFlag()
+    {
+        var store = new SettingsStore(FilePath, Defaults);
+        store.Save(Defaults());
+        using var _ = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.None);
+        var r = store.Load();
+        Assert.True(r.WasCorrupt);
+        Assert.Equal(Defaults(), r.Settings);
+    }
+
+    [Fact]
+    public void Save_LeavesNoTmpFile()
+    {
+        new SettingsStore(FilePath, Defaults).Save(Defaults());
+        Assert.True(File.Exists(FilePath));
+        Assert.False(File.Exists(FilePath + ".tmp"));
     }
 }

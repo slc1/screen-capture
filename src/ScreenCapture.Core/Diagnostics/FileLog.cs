@@ -21,8 +21,17 @@ public static class FileLog
 
     public static void Info(string message) => Write("INFO", message);
 
-    public static void Error(string message, Exception? ex = null) =>
-        Write("ERROR", ex is null ? message : $"{message}{Environment.NewLine}{ex}");
+    public static void Error(string message, Exception? ex = null)
+    {
+        try
+        {
+            Write("ERROR", ex is null ? message : $"{message}{Environment.NewLine}{ex}");
+        }
+        catch
+        {
+            // Logging must never break the app.
+        }
+    }
 
     private static void Write(string level, string message)
     {

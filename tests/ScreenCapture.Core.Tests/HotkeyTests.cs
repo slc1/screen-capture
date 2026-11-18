@@ -20,4 +20,14 @@ public class HotkeyTests
         Assert.True(HotkeyRules.IsValid(new(HotkeyModifiers.Shift, "A")));
         Assert.False(HotkeyRules.IsValid(new(HotkeyModifiers.Ctrl, "LeftCtrl")));
     }
+
+    [Theory]
+    [InlineData("F0", false)]
+    [InlineData("F1", true)]
+    [InlineData("F24", true)]
+    [InlineData("F25", false)]
+    [InlineData("F09", false)]
+    [InlineData("F", false)]
+    public void IsValid_FunctionKeyBoundaries(string key, bool expected) =>
+        Assert.Equal(expected, HotkeyRules.IsValid(new(HotkeyModifiers.None, key)));
 }

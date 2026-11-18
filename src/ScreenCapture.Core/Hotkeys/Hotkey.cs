@@ -44,5 +44,5 @@ public static class HotkeyRules
 
     private static bool IsFunctionKey(string key) =>
         key.Length is 2 or 3 && key[0] == 'F' && key.Skip(1).All(char.IsAsciiDigit)
-        && int.Parse(key.AsSpan(1)) is >= 1 and <= 24;
+        && key[1] != '0' && int.Parse(key.AsSpan(1)) is >= 1 and <= 24;
 }
