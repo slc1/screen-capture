@@ -24,6 +24,11 @@ public partial class EditorWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         base.OnClosed(e);
+        ReleaseImages();
+    }
+
+    public void ReleaseImages()
+    {
         Preview.Source = null;
         _preview?.Dispose();
         _preview = null;

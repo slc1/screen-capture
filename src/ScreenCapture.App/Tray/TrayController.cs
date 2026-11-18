@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using ScreenCapture.App.Common;
 using ScreenCapture.App.Services;
 using ScreenCapture.Core.Diagnostics;
 using ScreenCapture.Core.Hotkeys;
@@ -27,8 +28,8 @@ public sealed class TrayController : IDisposable
     public TrayController(AppServices services, Action captureArea, Action captureFullScreen, Action openSettings)
     {
         _services = services;
-        _captureArea = captureArea;
-        _captureFullScreen = captureFullScreen;
+        _captureArea = () => AfterMenuCloses(captureArea);
+        _captureFullScreen = () => AfterMenuCloses(captureFullScreen);
         _openSettings = openSettings;
 
         _areaItem.Click += (_, _) => _captureArea();
@@ -76,6 +77,17 @@ public sealed class TrayController : IDisposable
         _icon.IsVisible = false;
         _icon.Dispose();
     }
+
+    /// <summary>
+    /// Screen capture reads the composited desktop, which still shows the just-closed menu until DWM
+    /// composes another frame, so the capture waits for pending UI work plus one DWM frame.
+    /// </summary>
+    private static void AfterMenuCloses(Action capture) =>
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (!NativeDwm.Flush()) FileLog.Info("DwmFlush failed before capture");
+            capture();
+        }, DispatcherPriority.Background);
 
     private static string WithHotkey(string text, Hotkey? hotkey) =>
         hotkey is null ? text : $"{text} ({hotkey})";

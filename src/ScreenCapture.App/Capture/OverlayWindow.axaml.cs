@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using ScreenCapture.App.Common;
 using ScreenCapture.Core.Diagnostics;
 using ScreenCapture.Core.Geometry;
@@ -17,6 +18,7 @@ public partial class OverlayWindow : Window
     private Bitmap? _frozen;
     private Point _dragStart;
     private bool _dragging;
+    private bool _closed;
 
     public OverlayWindow()
     {
@@ -44,11 +46,40 @@ public partial class OverlayWindow : Window
 
     public event Action? CancelRequested;
 
+    /// <summary>Raised with details when the window cannot be made to cover its monitor 1:1.</summary>
+    public event Action<string>? CoverageFailed;
+
     protected override void OnOpened(EventArgs e)
     {
         base.OnOpened(e);
-        if (Snapshot is { } s && Math.Abs(RenderScaling - s.Monitor.Scale) > 0.001)
+        if (Snapshot is not { } s) return;
+        if (Math.Abs(RenderScaling - s.Monitor.Scale) > 0.001)
             FileLog.Info($"Overlay on {s.Monitor.DeviceName}: RenderScaling {RenderScaling} differs from monitor scale {s.Monitor.Scale}");
+
+        if (CoverageMismatch() is not { } mismatch) return;
+        FileLog.Info($"Overlay on {s.Monitor.DeviceName} does not cover the monitor ({mismatch}); applying explicit bounds");
+        var bounds = s.Monitor.BoundsPx;
+        WindowState = WindowState.Normal;
+        Position = new PixelPoint(bounds.Left, bounds.Top);
+        Width = bounds.Width / RenderScaling;
+        Height = bounds.Height / RenderScaling;
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_closed || CoverageMismatch() is not { } still) return;
+            CoverageFailed?.Invoke($"Overlay on {s.Monitor.DeviceName} does not cover the monitor: {still}");
+        }, DispatcherPriority.Loaded);
+    }
+
+    /// <summary>Null when the client area maps 1:1 onto the snapshot's pixels at the monitor's position.</summary>
+    private string? CoverageMismatch()
+    {
+        var s = Snapshot!;
+        var bounds = s.Monitor.BoundsPx;
+        var w = (int)Math.Round(ClientSize.Width * RenderScaling);
+        var h = (int)Math.Round(ClientSize.Height * RenderScaling);
+        var pos = Position;
+        if (w == s.Image.Width && h == s.Image.Height && pos.X == bounds.Left && pos.Y == bounds.Top) return null;
+        return $"window at {pos.X},{pos.Y} {w}x{h} px, monitor at {bounds.Left},{bounds.Top} {s.Image.Width}x{s.Image.Height} px";
     }
 
     protected override void OnPointerEntered(PointerEventArgs e)
@@ -68,6 +99,12 @@ public partial class OverlayWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         base.OnClosed(e);
+        _closed = true;
+        ReleaseFrozen();
+    }
+
+    public void ReleaseFrozen()
+    {
         Surface.Image = null;
         _frozen?.Dispose();
         _frozen = null;

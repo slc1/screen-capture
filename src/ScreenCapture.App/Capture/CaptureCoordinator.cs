@@ -85,18 +85,31 @@ public sealed class CaptureCoordinator
                     var window = new OverlayWindow(snapshot);
                     window.SelectionCompleted += OnSelectionCompleted;
                     window.CancelRequested += End;
+                    window.CoverageFailed += OnCoverageFailed;
                     window.Closed += (_, _) => End();
                     _windows.Add(window);
                 }
 
-                foreach (var window in _windows) window.Show();
-                WindowUnderCursor()?.Activate();
+                foreach (var window in _windows)
+                {
+                    if (_ended) return;
+                    window.Show();
+                }
+
+                if (!_ended) WindowUnderCursor()?.Activate();
             }
             catch (Exception ex)
             {
                 End();
                 owner.ReportCaptureFailed(ex);
             }
+        }
+
+        private void OnCoverageFailed(string details)
+        {
+            if (_ended) return;
+            End();
+            owner.ReportCaptureFailed(new InvalidOperationException(details));
         }
 
         private OverlayWindow? WindowUnderCursor()
@@ -155,6 +168,8 @@ public sealed class CaptureCoordinator
             }
             finally
             {
+                // A window that never opened gets no OnClosed, so its frozen bitmap is released here.
+                foreach (var window in _windows) window.ReleaseFrozen();
                 foreach (var snapshot in _snapshots) snapshot.Image.Dispose();
                 lease.Dispose();
             }

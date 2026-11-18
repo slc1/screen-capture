@@ -61,7 +61,19 @@ public partial class App : Application
                 new CaptureGate());
             Services = services;
 
-            var capture = new CaptureCoordinator(services, image => new EditorWindow(image, services).Show());
+            var capture = new CaptureCoordinator(services, image =>
+            {
+                var editor = new EditorWindow(image, services);
+                try
+                {
+                    editor.Show();
+                }
+                catch
+                {
+                    editor.ReleaseImages();
+                    throw;
+                }
+            });
 
             Tray = new TrayController(
                 services,
