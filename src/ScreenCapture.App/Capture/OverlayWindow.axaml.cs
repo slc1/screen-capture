@@ -23,9 +23,11 @@ public partial class OverlayWindow : Window
     public OverlayWindow()
     {
         InitializeComponent();
-        Cursor = new Cursor(StandardCursorType.Cross);
+        Cursor = new Cursor(StandardCursorType.None);
         Surface.PointerPressed += OnSurfacePressed;
         Surface.PointerMoved += OnSurfaceMoved;
+        Surface.PointerEntered += (_, e) => Surface.Pointer = e.GetPosition(Surface);
+        Surface.PointerExited += (_, _) => Surface.Pointer = null;
         Surface.PointerReleased += OnSurfaceReleased;
         Surface.PointerCaptureLost += OnSurfaceCaptureLost;
     }
@@ -35,6 +37,7 @@ public partial class OverlayWindow : Window
         Snapshot = snapshot;
         _frozen = SkiaBitmapConversion.ToAvalonia(snapshot.Image);
         Surface.Image = _frozen;
+        Surface.Source = snapshot.Image;
         Position = new PixelPoint(snapshot.Monitor.BoundsPx.Left, snapshot.Monitor.BoundsPx.Top);
         WindowState = WindowState.FullScreen;
     }
@@ -131,6 +134,7 @@ public partial class OverlayWindow : Window
     public void ReleaseFrozen()
     {
         Surface.Image = null;
+        Surface.Source = null;
         _frozen?.Dispose();
         _frozen = null;
     }
@@ -148,6 +152,7 @@ public partial class OverlayWindow : Window
 
     private void OnSurfaceMoved(object? sender, PointerEventArgs e)
     {
+        Surface.Pointer = e.GetPosition(Surface);
         if (!_dragging) return;
         ShowSelection(ToPixelRect(e.GetPosition(Surface)));
     }

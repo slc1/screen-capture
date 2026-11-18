@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
+using SkiaSharp;
 
 namespace ScreenCapture.App.Capture;
 
@@ -17,6 +18,8 @@ public sealed class OverlaySurface : Control
 
     private IImage? _image;
     private Rect? _selection;
+    private Point? _pointer;
+    private SKBitmap? _source;
 
     public IImage? Image
     {
@@ -39,6 +42,25 @@ public sealed class OverlaySurface : Control
         }
     }
 
+    /// <summary>The frozen pixels, sampled to choose the crosshair colour; not owned by the surface.</summary>
+    public SKBitmap? Source
+    {
+        get => _source;
+        set => _source = value;
+    }
+
+    /// <summary>Pointer position in DIPs, or null to hide the crosshair.</summary>
+    public Point? Pointer
+    {
+        get => _pointer;
+        set
+        {
+            if (_pointer == value) return;
+            _pointer = value;
+            InvalidateVisual();
+        }
+    }
+
     public override void Render(DrawingContext context)
     {
         var bounds = new Rect(Bounds.Size);
@@ -48,6 +70,7 @@ public sealed class OverlaySurface : Control
         if (_selection is not { } s)
         {
             context.FillRectangle(Dim, bounds);
+            DrawCrosshair(context);
             return;
         }
 
@@ -61,5 +84,24 @@ public sealed class OverlaySurface : Control
         var border = s.Inflate(px / 2);
         context.DrawRectangle(null, new ImmutablePen(Brushes.White, px), border);
         context.DrawRectangle(null, new ImmutablePen(Brushes.Black, px, BorderDash), border);
+        DrawCrosshair(context);
     }
+
+    private void DrawCrosshair(DrawingContext context)
+    {
+        if (_pointer is not { } p || _source is not { } src) return;
+        var scale = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1;
+        var inside = _selection is { } s
+            ? new PixelRect((int)Math.Round(s.Left * scale), (int)Math.Round(s.Top * scale),
+                (int)Math.Round(s.Width * scale), (int)Math.Round(s.Height * scale))
+            : default;
+        foreach (var (x, y) in CrosshairGeometry.ArmPixels(p.X, p.Y, scale, src.Width, src.Height))
+        {
+            var c = src.GetPixel(x, y);
+            var dimmed = !(_selection is not null && inside.Contains(new PixelPoint(x, y)));
+            var brush = CrosshairGeometry.UseBlack(c.Red, c.Green, c.Blue, dimmed) ? Brushes.Black : Brushes.White;
+            context.FillRectangle(brush, new Rect(x / scale, y / scale, 1 / scale, 1 / scale));
+        }
+    }
+
 }
