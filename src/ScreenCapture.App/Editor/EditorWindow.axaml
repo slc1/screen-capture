@@ -1,0 +1,14 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:ScreenCapture.Core.Localization"
+        x:Class="ScreenCapture.App.Editor.EditorWindow"
+        Title="{Binding [Editor_Title], Source={x:Static loc:Loc.Instance}}"
+        Width="1000"
+        Height="700"
+        WindowStartupLocation="CenterScreen">
+    <Image x:Name="Preview"
+           Margin="12"
+           Stretch="Uniform"
+           StretchDirection="DownOnly"
+           RenderOptions.BitmapInterpolationMode="HighQuality" />
+</Window>

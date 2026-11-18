@@ -4,6 +4,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using ScreenCapture.App.Capture;
+using ScreenCapture.App.Editor;
 using ScreenCapture.App.Services;
 using ScreenCapture.App.Tray;
 using ScreenCapture.Core.Capture;
@@ -59,10 +61,12 @@ public partial class App : Application
                 new CaptureGate());
             Services = services;
 
+            var capture = new CaptureCoordinator(services, image => new EditorWindow(image, services).Show());
+
             Tray = new TrayController(
                 services,
-                captureArea: () => FileLog.Info("Capture area requested"),
-                captureFullScreen: () => FileLog.Info("Capture full screen requested"),
+                captureArea: capture.StartArea,
+                captureFullScreen: capture.StartFullScreen,
                 openSettings: () => FileLog.Info("Settings requested"));
 
             Dispatcher.UIThread.UnhandledException += (_, e) =>

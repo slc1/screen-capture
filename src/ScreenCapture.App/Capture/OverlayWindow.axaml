@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:ScreenCapture.Core.Localization"
+        xmlns:capture="using:ScreenCapture.App.Capture"
+        x:Class="ScreenCapture.App.Capture.OverlayWindow"
+        SystemDecorations="None"
+        Topmost="True"
+        ShowInTaskbar="False"
+        CanResize="False"
+        WindowStartupLocation="Manual"
+        Background="Black">
+    <Panel>
+        <capture:OverlaySurface x:Name="Surface" RenderOptions.BitmapInterpolationMode="None" />
+        <Canvas IsHitTestVisible="False">
+            <Border x:Name="SizeLabel"
+                    IsVisible="False"
+                    Background="#CC000000"
+                    CornerRadius="3"
+                    Padding="6,2">
+                <TextBlock x:Name="SizeText" Foreground="White" FontSize="12" />
+            </Border>
+        </Canvas>
+        <Border x:Name="Hint"
+                IsHitTestVisible="False"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Margin="0,24,0,0"
+                Background="#CC000000"
+                CornerRadius="4"
+                Padding="12,6">
+            <TextBlock Foreground="White"
+                       FontSize="14"
+                       Text="{Binding [Overlay_Hint], Source={x:Static loc:Loc.Instance}}" />
+        </Border>
+    </Panel>
+</Window>

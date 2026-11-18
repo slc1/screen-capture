@@ -1,8 +1,8 @@
-using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using ScreenCapture.App.Common;
 
 namespace ScreenCapture.App.Tray;
 
@@ -35,7 +35,7 @@ public partial class TrayMenuWindow : Window
         _captureFullScreen = captureFullScreen;
         _openSettings = openSettings;
         _exit = exit;
-        _anchor = CursorPosition();
+        _anchor = NativeCursor.Position() ?? new PixelPoint(0, 0);
         Opened += (_, _) => PlaceNearAnchor();
         Deactivated += (_, _) => Close();
     }
@@ -79,18 +79,4 @@ public partial class TrayMenuWindow : Window
         Opacity = 1;
         Activate();
     }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct NativePoint
-    {
-        public int X;
-        public int Y;
-    }
-
-    [DllImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetCursorPos(out NativePoint point);
-
-    private static PixelPoint CursorPosition() =>
-        GetCursorPos(out var p) ? new PixelPoint(p.X, p.Y) : new PixelPoint(0, 0);
 }
