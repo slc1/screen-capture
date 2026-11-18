@@ -28,12 +28,24 @@ public sealed class CrosshairGeometryTests
         Assert.All(p, q => Assert.True(q.X >= 0 && q.Y >= 0 && q.X < 100 && q.Y < 100));
     }
 
+    [Fact]
+    public void Pointer_pixel_is_not_one_low_from_floating_point_error()
+    {
+        // 5.6 * 1.25 evaluates to 6.999999..., which must still be pixel 7.
+        var p = CrosshairGeometry.ArmPixels(5.6, 5.6, 1.25, 100, 100);
+
+        Assert.Contains((7 + 4, 7), p);
+        Assert.Contains((7, 7 + 4), p);
+    }
+
     [Theory]
-    [InlineData(255, 255, 255, false, true)]  // white, undimmed -> black
+    [InlineData(255, 255, 255, false, true)]  // white -> black
     [InlineData(0, 0, 0, false, false)]       // black -> white
-    [InlineData(255, 255, 255, true, false)]  // white dimmed to 50 % grey (luminance ~0.21) -> white
-    [InlineData(200, 200, 200, false, true)]  // luminance ~0.58
-    [InlineData(180, 180, 180, false, false)] // luminance ~0.46
-    public void Arm_colour_follows_the_displayed_luminance(byte r, byte g, byte b, bool dimmed, bool black) =>
+    [InlineData(60, 60, 60, false, false)]    // dark grey (L ~0.045) -> white
+    [InlineData(128, 128, 128, false, true)]  // mid grey (L ~0.216) -> black
+    [InlineData(255, 255, 255, true, true)]   // white dimmed to 50 % (L ~0.21) -> black
+    [InlineData(200, 200, 200, true, false)]  // dimmed (L ~0.13) -> white
+    [InlineData(0, 0, 0, true, false)]        // dimmed black -> white
+    public void Arm_colour_is_the_better_contrast_against_the_displayed_pixel(byte r, byte g, byte b, bool dimmed, bool black) =>
         Assert.Equal(black, CrosshairGeometry.UseBlack(r, g, b, dimmed));
 }

@@ -89,7 +89,7 @@ public sealed class OverlaySurface : Control
 
     private void DrawCrosshair(DrawingContext context)
     {
-        if (_pointer is not { } p || _source is not { } src) return;
+        if (_pointer is not { } p || _source is not { } src || src.Handle == IntPtr.Zero) return;
         var scale = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1;
         var inside = _selection is { } s
             ? new PixelRect((int)Math.Round(s.Left * scale), (int)Math.Round(s.Top * scale),
