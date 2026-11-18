@@ -9,14 +9,7 @@ artifacts/
 TestResults/
 
 # Rider
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/**/usage.statistics.xml
-.idea/**/shelf/
-.idea/**/contentModel.xml
-.idea/**/indexLayout.xml
-.idea/**/projectSettingsUpdater.xml
-.idea/**/.idea.*/.idea/
+.idea/
 
 # Agent working files
 .superpowers/
