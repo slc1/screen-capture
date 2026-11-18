@@ -46,6 +46,7 @@ internal sealed class UnusedCapturer : IScreenCapturer
 internal sealed class UnusedClipboard : IClipboardImageService
 {
     public bool TrySetImage(SKBitmap image) => throw new NotSupportedException();
+    public string? LastError => null;
 }
 
 internal sealed class FakeAutostart : IAutostartService

@@ -149,9 +149,14 @@ public sealed partial class EditorViewModel : ObservableObject
             _host.CommitPendingText();
             using var flat = AnnotationRenderer.Flatten(Session.Image, Session.Document.Annotations.ToList());
             if (_services.Clipboard.TrySetImage(flat))
+            {
                 _host.CloseEditor();
+            }
             else
+            {
+                FileLog.Error($"Copy failed: {_services.Clipboard.LastError ?? "unknown cause"}");
                 _services.Notifier.ShowError(_services.Loc["Error_ClipboardFailed"]);
+            }
         }
         catch (Exception ex)
         {
