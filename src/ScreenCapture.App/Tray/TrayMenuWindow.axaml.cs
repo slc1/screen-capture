@@ -77,6 +77,6 @@ public partial class TrayMenuWindow : Window
         y = Math.Clamp(y, area.Y, Math.Max(area.Y, area.Bottom - h));
         Position = new PixelPoint(x, y);
         Opacity = 1;
-        Activate();
+        NativeForeground.Bring(this);
     }
 }

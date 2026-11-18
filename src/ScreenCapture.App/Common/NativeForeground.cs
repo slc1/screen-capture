@@ -33,7 +33,10 @@ internal static class NativeForeground
             return;
 
         var thisThread = GetCurrentThreadId();
-        var foregroundThread = foreground == IntPtr.Zero ? 0u : GetWindowThreadProcessId(foreground, out _);
+        // Attaching to a hung window's input queue can block this thread until that app responds.
+        var foregroundThread = foreground == IntPtr.Zero || IsHungAppWindow(foreground)
+            ? 0u
+            : GetWindowThreadProcessId(foreground, out _);
         var attached = foregroundThread != 0 && foregroundThread != thisThread
             && AttachThreadInput(thisThread, foregroundThread, true);
         try
@@ -51,6 +54,10 @@ internal static class NativeForeground
 
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool IsHungAppWindow(IntPtr hwnd);
 
     [DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint processId);
