@@ -7,9 +7,11 @@ using Avalonia.Threading;
 using ScreenCapture.App.Capture;
 using ScreenCapture.App.Editor;
 using ScreenCapture.App.Services;
+using ScreenCapture.App.Settings;
 using ScreenCapture.App.Tray;
 using ScreenCapture.Core.Capture;
 using ScreenCapture.Core.Diagnostics;
+using ScreenCapture.Core.Hotkeys;
 using ScreenCapture.Core.Localization;
 using ScreenCapture.Core.Settings;
 using ScreenCapture.Platform.Windows;
@@ -75,11 +77,20 @@ public partial class App : Application
                 }
             });
 
+            var hotkeys = new HotkeyManager(services.Hotkeys, services);
+            hotkeys.Triggered += (_, id) =>
+            {
+                FileLog.Info($"Hotkey {id}");
+                if (id == HotkeyId.CaptureArea) capture.StartArea();
+                else capture.StartFullScreen();
+            };
+
             Tray = new TrayController(
                 services,
                 captureArea: capture.StartArea,
                 captureFullScreen: capture.StartFullScreen,
-                openSettings: () => FileLog.Info("Settings requested"));
+                openSettings: () => SettingsWindow.ShowOrActivate(services, hotkeys));
+            hotkeys.HotkeysChanged += (_, _) => Tray?.Refresh();
 
             Dispatcher.UIThread.UnhandledException += (_, e) =>
             {
@@ -90,6 +101,8 @@ public partial class App : Application
 
             if (loaded.WasCorrupt)
                 Dispatcher.UIThread.Post(() => services.Notifier.ShowError(loc["Error_SettingsCorrupt"]));
+
+            hotkeys.RegisterFromSettings();
         }
 
         base.OnFrameworkInitializationCompleted();
