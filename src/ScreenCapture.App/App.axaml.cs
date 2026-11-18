@@ -16,9 +16,9 @@ namespace ScreenCapture.App;
 
 public partial class App : Application
 {
-    private TrayController? _tray;
-
     public static AppServices? Services { get; private set; }
+
+    public static TrayController? Tray { get; private set; }
 
     public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
@@ -32,8 +32,20 @@ public partial class App : Application
             var pictures = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
             var store = new SettingsStore(Program.SettingsPath, () => AppSettings.CreateDefault(
                 pictures, Loc.ResolveInitialLanguage(CultureInfo.CurrentUICulture.Name, Loc.AvailableLanguages())));
+            var firstRun = !File.Exists(Program.SettingsPath);
             var loaded = store.Load();
             loc.SetLanguage(loaded.Settings.Language);
+            if (firstRun || loaded.WasCorrupt)
+            {
+                try
+                {
+                    store.Save(loaded.Settings);
+                }
+                catch (Exception ex)
+                {
+                    FileLog.Error("Could not save initial settings", ex);
+                }
+            }
 
             var services = new AppServices(
                 loc,
@@ -47,14 +59,21 @@ public partial class App : Application
                 new CaptureGate());
             Services = services;
 
-            _tray = new TrayController(
+            Tray = new TrayController(
                 services,
                 captureArea: () => FileLog.Info("Capture area requested"),
                 captureFullScreen: () => FileLog.Info("Capture full screen requested"),
                 openSettings: () => FileLog.Info("Settings requested"));
 
+            Dispatcher.UIThread.UnhandledException += (_, e) =>
+            {
+                e.Handled = true;
+                FileLog.Error("Unhandled UI exception", e.Exception);
+                services.Notifier.ShowError(loc.Format("Error_Unexpected", Program.LogPath));
+            };
+
             if (loaded.WasCorrupt)
-                services.Notifier.ShowError(loc["Error_SettingsCorrupt"]);
+                Dispatcher.UIThread.Post(() => services.Notifier.ShowError(loc["Error_SettingsCorrupt"]));
         }
 
         base.OnFrameworkInitializationCompleted();

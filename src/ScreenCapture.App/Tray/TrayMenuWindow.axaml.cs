@@ -18,6 +18,7 @@ public partial class TrayMenuWindow : Window
     {
         _captureArea = _captureFullScreen = _openSettings = _exit = () => { };
         InitializeComponent();
+        Opacity = 0;
     }
 
     public TrayMenuWindow(
@@ -59,7 +60,11 @@ public partial class TrayMenuWindow : Window
     private void PlaceNearAnchor()
     {
         var screen = Screens.ScreenFromPoint(_anchor) ?? Screens.Primary;
-        if (screen is null) return;
+        if (screen is null)
+        {
+            Opacity = 1;
+            return;
+        }
 
         var area = screen.WorkingArea;
         var w = (int)Math.Ceiling(Bounds.Width * screen.Scaling);
@@ -71,6 +76,7 @@ public partial class TrayMenuWindow : Window
         x = Math.Clamp(x, area.X, Math.Max(area.X, area.Right - w));
         y = Math.Clamp(y, area.Y, Math.Max(area.Y, area.Bottom - h));
         Position = new PixelPoint(x, y);
+        Opacity = 1;
         Activate();
     }
 

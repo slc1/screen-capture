@@ -22,6 +22,7 @@ public sealed class TrayController : IDisposable
     private readonly NativeMenuItem _settingsItem = new();
     private readonly NativeMenuItem _exitItem = new();
     private TrayMenuWindow? _menuWindow;
+    private bool _disposed;
 
     public TrayController(AppServices services, Action captureArea, Action captureFullScreen, Action openSettings)
     {
@@ -57,6 +58,7 @@ public sealed class TrayController : IDisposable
 
     public void Refresh()
     {
+        if (_disposed) return;
         var loc = _services.Loc;
         _icon.ToolTipText = loc["App_Name"];
         _areaItem.Header = WithHotkey(loc["Tray_CaptureArea"], _services.Settings.AreaHotkey);
@@ -67,6 +69,8 @@ public sealed class TrayController : IDisposable
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
         _services.Loc.PropertyChanged -= OnLocChanged;
         _menuWindow?.Close();
         _icon.IsVisible = false;
