@@ -91,13 +91,20 @@ public sealed class Win32HotkeyService : IGlobalHotkeyService
     {
         if (msg == NativeMethods.WM_HOTKEY)
         {
-            var regId = (int)wParam;
-            foreach (var (id, r) in _registered)
+            try
             {
-                if (r != regId) continue;
-                var pressed = id;
-                _postToUiThread(() => Pressed?.Invoke(this, pressed));
-                break;
+                var regId = (int)wParam;
+                foreach (var (id, r) in _registered)
+                {
+                    if (r != regId) continue;
+                    var pressed = id;
+                    _postToUiThread(() => Pressed?.Invoke(this, pressed));
+                    break;
+                }
+            }
+            catch
+            {
+                // An exception must never unwind through the native window-procedure callback.
             }
             return 0;
         }
