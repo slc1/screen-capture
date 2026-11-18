@@ -19,6 +19,9 @@ public sealed class EditorSession
 {
     private const float MinShapeSize = 3f;
 
+    /// <summary>How much of a moved annotation's bounds (per axis, in image px) must stay on the image.</summary>
+    private const float MinVisibleOnMove = 8f;
+
     private bool _pressed;
     private SKPoint _downPoint;
     private Guid _draftId;
@@ -102,7 +105,7 @@ public sealed class EditorSession
     {
         ResetGesture();
         _pressed = true;
-        _downPoint = imagePt;
+        _downPoint = Tool is EditorTool.Select or EditorTool.Text ? imagePt : ClampToImage(imagePt);
 
         switch (Tool)
         {
@@ -129,12 +132,12 @@ public sealed class EditorSession
 
         if (_moveOriginal is not null)
         {
-            _movePreview = _moveOriginal.MoveBy(imagePt.X - _downPoint.X, imagePt.Y - _downPoint.Y);
+            _movePreview = MovedWithinImage(_moveOriginal, imagePt);
             OnChanged();
         }
         else if (Draft is not null)
         {
-            Draft = CreateShape(imagePt);
+            Draft = CreateShape(ClampToImage(imagePt));
             OnChanged();
         }
     }
@@ -146,14 +149,13 @@ public sealed class EditorSession
 
         if (_moveOriginal is { } original)
         {
-            var dx = imagePt.X - _downPoint.X;
-            var dy = imagePt.Y - _downPoint.Y;
-            if ((dx != 0 || dy != 0) && Find(original.Id) is not null)
-                Document.Execute(new ReplaceAnnotationCommand(original, original.MoveBy(dx, dy)));
+            var moved = MovedWithinImage(original, imagePt);
+            if (moved != original && Find(original.Id) is not null)
+                Document.Execute(new ReplaceAnnotationCommand(original, moved));
         }
         else if (Draft is not null)
         {
-            var shape = CreateShape(imagePt);
+            var shape = CreateShape(ClampToImage(imagePt));
             Draft = null;
             if (IsLargeEnough(shape))
                 Document.Execute(new AddAnnotationCommand(shape));
@@ -188,7 +190,7 @@ public sealed class EditorSession
         if (string.IsNullOrWhiteSpace(text))
             return;
         Document.Execute(new AddAnnotationCommand(
-            new TextAnnotation(Guid.NewGuid(), Color, Width, position, text, TextFontSize)));
+            new TextAnnotation(Guid.NewGuid(), Color, Width, ClampToImage(position), text, TextFontSize)));
     }
 
     public void ReplaceText(Guid id, string text)
@@ -196,6 +198,29 @@ public sealed class EditorSession
         if (string.IsNullOrWhiteSpace(text) || Find(id) is not TextAnnotation before || before.Text == text)
             return;
         Document.Execute(new ReplaceAnnotationCommand(before, before with { Text = text }));
+    }
+
+    private SKPoint ClampToImage(SKPoint p) =>
+        new(Math.Clamp(p.X, 0f, Image.Width), Math.Clamp(p.Y, 0f, Image.Height));
+
+    /// <summary>
+    /// The original moved by the pointer delta, with the delta clamped so its bounds keep overlapping the image
+    /// (it may hang partly off the image, but never leaves it entirely).
+    /// </summary>
+    private Annotation MovedWithinImage(Annotation original, SKPoint imagePt)
+    {
+        var b = original.Bounds;
+        var dx = ClampDelta(imagePt.X - _downPoint.X, b.Left, b.Right, Image.Width);
+        var dy = ClampDelta(imagePt.Y - _downPoint.Y, b.Top, b.Bottom, Image.Height);
+        return dx == 0 && dy == 0 ? original : original.MoveBy(dx, dy);
+    }
+
+    private static float ClampDelta(float delta, float start, float end, float extent)
+    {
+        var keep = Math.Min(MinVisibleOnMove, Math.Min(end - start, extent));
+        var min = keep - end;
+        var max = extent - keep - start;
+        return min > max ? 0f : Math.Clamp(delta, min, max);
     }
 
     private Annotation CreateShape(SKPoint end) => Tool switch

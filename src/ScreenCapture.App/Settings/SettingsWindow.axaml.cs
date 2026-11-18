@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using ScreenCapture.App.Common;
 using ScreenCapture.App.Services;
 using ScreenCapture.Core.Diagnostics;
 using ScreenCapture.Core.Hotkeys;
@@ -40,14 +41,14 @@ public partial class SettingsWindow : Window
         if (_current is { } open)
         {
             if (open.WindowState == WindowState.Minimized) open.WindowState = WindowState.Normal;
-            open.Activate();
+            NativeForeground.Bring(open);
             return;
         }
 
         var window = new SettingsWindow(services, hotkeys);
         _current = window;
         window.Show();
-        window.Activate();
+        NativeForeground.Bring(window);
     }
 
     protected override void OnClosed(EventArgs e)

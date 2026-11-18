@@ -374,4 +374,70 @@ public sealed class EditorSessionTests : IDisposable
         s.PointerMove(new(50, 10));
         Assert.True(count >= 2);
     }
+    [Fact]
+    public void Drag_OutsideImage_IsClampedToEdges()
+    {
+        var s = NewSession(EditorTool.Rectangle);
+        Drag(s, new(-50, -50), new(5000, 5000));
+
+        var rect = Assert.IsType<RectangleAnnotation>(Assert.Single(s.Document.Annotations));
+        Assert.Equal(new SKRect(0, 0, 200, 100), rect.Rect);
+    }
+
+    [Fact]
+    public void Arrow_EndOutside_IsClamped()
+    {
+        var s = NewSession(EditorTool.Arrow);
+        s.PointerDown(new(10, 10));
+        s.PointerMove(new(500, -30));
+        var draft = Assert.IsType<ArrowAnnotation>(s.Draft);
+        Assert.Equal(new SKPoint(200, 0), draft.End);
+        s.PointerUp(new(500, -30));
+
+        var arrow = Assert.IsType<ArrowAnnotation>(Assert.Single(s.Document.Annotations));
+        Assert.Equal(new SKPoint(10, 10), arrow.Start);
+        Assert.Equal(new SKPoint(200, 0), arrow.End);
+    }
+
+    [Fact]
+    public void PointerDown_OutsideImage_StartsShapeAtClampedPoint()
+    {
+        var s = NewSession(EditorTool.Line);
+        Drag(s, new(-40, 50), new(100, 50));
+
+        var line = Assert.IsType<LineAnnotation>(Assert.Single(s.Document.Annotations));
+        Assert.Equal(new SKPoint(0, 50), line.Start);
+        Assert.Equal(new SKPoint(100, 50), line.End);
+    }
+
+    [Fact]
+    public void AddText_OutsidePosition_IsClamped()
+    {
+        var s = NewSession(EditorTool.Text);
+        s.AddText(new(-20, 300), "hello");
+
+        var t = Assert.IsType<TextAnnotation>(Assert.Single(s.Document.Annotations));
+        Assert.Equal(new SKPoint(0, 100), t.Position);
+    }
+
+    [Theory]
+    [InlineData(100000, 100000)]
+    [InlineData(-100000, -100000)]
+    [InlineData(100000, -100000)]
+    [InlineData(-100000, 0)]
+    public void Move_CannotDragAnnotationFullyOff(float dx, float dy)
+    {
+        var s = NewSession(EditorTool.Rectangle);
+        Drag(s, new(10, 10), new(50, 40));
+
+        s.Tool = EditorTool.Select;
+        s.PointerDown(new(10, 20));
+        s.PointerMove(new(10 + dx, 20 + dy));
+        Assert.True(s.Selected!.Bounds.IntersectsWith(new SKRect(0, 0, 200, 100)));
+        s.PointerUp(new(10 + dx, 20 + dy));
+
+        var moved = Assert.Single(s.Document.Annotations);
+        Assert.True(moved.Bounds.IntersectsWith(new SKRect(0, 0, 200, 100)));
+        Assert.True(s.Document.CanUndo);
+    }
 }

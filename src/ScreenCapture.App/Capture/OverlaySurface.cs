@@ -5,10 +5,15 @@ using Avalonia.Media.Immutable;
 
 namespace ScreenCapture.App.Capture;
 
-/// <summary>Draws the frozen screen, a 50 % dim and the undimmed selection with a 1-device-pixel border.</summary>
+/// <summary>
+/// Draws the frozen screen, a 50 % dim and the undimmed selection with a 1-device-pixel two-tone dashed border.
+/// </summary>
 public sealed class OverlaySurface : Control
 {
     private static readonly IBrush Dim = new ImmutableSolidColorBrush(Color.FromArgb(128, 0, 0, 0));
+
+    // Dash lengths are in stroke widths, and the stroke is one device pixel: 6 px black, 6 px gap.
+    private static readonly ImmutableDashStyle BorderDash = new([6, 6], 0);
 
     private IImage? _image;
     private Rect? _selection;
@@ -53,6 +58,8 @@ public sealed class OverlaySurface : Control
 
         var px = 1 / (TopLevel.GetTopLevel(this)?.RenderScaling ?? 1);
         // Centered half a device pixel outside the selection, so the border never covers selected pixels.
-        context.DrawRectangle(null, new ImmutablePen(Brushes.White, px), s.Inflate(px / 2));
+        var border = s.Inflate(px / 2);
+        context.DrawRectangle(null, new ImmutablePen(Brushes.White, px), border);
+        context.DrawRectangle(null, new ImmutablePen(Brushes.Black, px, BorderDash), border);
     }
 }

@@ -21,8 +21,14 @@ public sealed class AnnotationCanvas : Control, IDisposable
 {
     private static readonly ImmutableDashStyle SelectionDash = new ImmutableDashStyle([4, 4], 0);
 
+    private const double CheckerSquareDip = 8;
+    private static readonly SKColor CheckerDark = new(0x3A, 0x3A, 0x3A);
+    private static readonly SKColor CheckerLight = new(0x4A, 0x4A, 0x4A);
+
     private EditorSession? _session;
     private WriteableBitmap? _composite;
+    private WriteableBitmap? _checker;
+    private double _checkerScaling;
     private bool _dirty = true;
     private bool _gesture;
     private Viewport _viewport = new(1f, SKPoint.Empty);
@@ -67,6 +73,8 @@ public sealed class AnnotationCanvas : Control, IDisposable
         Session = null;
         _composite?.Dispose();
         _composite = null;
+        _checker?.Dispose();
+        _checker = null;
     }
 
     public override void Render(DrawingContext context)
@@ -82,9 +90,11 @@ public sealed class AnnotationCanvas : Control, IDisposable
             _viewport.Offset.Y / s,
             composite.PixelSize.Width * _viewport.Scale / s,
             composite.PixelSize.Height * _viewport.Scale / s);
+        DrawChecker(context);
         var mode = _viewport.Scale >= 1f ? BitmapInterpolationMode.None : BitmapInterpolationMode.HighQuality;
         using (context.PushRenderOptions(new RenderOptions { BitmapInterpolationMode = mode }))
             context.DrawImage(composite, new Rect(0, 0, composite.PixelSize.Width, composite.PixelSize.Height), dest);
+        DrawImageOutline(context, dest);
 
         if (_session.Selected is { } selected)
             DrawSelection(context, selected.Bounds);
@@ -194,6 +204,54 @@ public sealed class AnnotationCanvas : Control, IDisposable
         }
 
         return _composite;
+    }
+
+    /// <summary>
+    /// Fills the whole canvas with the checkerboard; the opaque image is drawn over it. Rendered once per size
+    /// and scaling into a device-pixel bitmap with square edges on whole device pixels, so it stays crisp.
+    /// </summary>
+    private void DrawChecker(DrawingContext context)
+    {
+        var s = _scaling;
+        var size = new PixelSize(
+            Math.Max(1, (int)Math.Ceiling(Bounds.Width * s)),
+            Math.Max(1, (int)Math.Ceiling(Bounds.Height * s)));
+        if (_checker is null || _checker.PixelSize != size || _checkerScaling != s)
+        {
+            _checker?.Dispose();
+            _checker = new WriteableBitmap(size, new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Premul);
+            _checkerScaling = s;
+            using var buffer = _checker.Lock();
+            var info = new SKImageInfo(size.Width, size.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
+            using var surface = SKSurface.Create(info, buffer.Address, buffer.RowBytes)
+                ?? throw new InvalidOperationException("Cannot create a drawing surface for the editor background.");
+            var canvas = surface.Canvas;
+            canvas.Clear(CheckerDark);
+            using var paint = new SKPaint { Color = CheckerLight, IsAntialias = false };
+            var step = CheckerSquareDip * s;
+            var columns = (int)Math.Ceiling(size.Width / step);
+            var rows = (int)Math.Ceiling(size.Height / step);
+            for (var y = 0; y < rows; y++)
+            {
+                var top = (float)Math.Round(y * step);
+                var bottom = (float)Math.Round((y + 1) * step);
+                for (var x = (y + 1) % 2; x < columns; x += 2)
+                    canvas.DrawRect(new SKRect((float)Math.Round(x * step), top, (float)Math.Round((x + 1) * step), bottom), paint);
+            }
+
+            canvas.Flush();
+        }
+
+        using (context.PushRenderOptions(new RenderOptions { BitmapInterpolationMode = BitmapInterpolationMode.None }))
+            context.DrawImage(_checker, new Rect(0, 0, size.Width, size.Height), new Rect(0, 0, size.Width / s, size.Height / s));
+    }
+
+    /// <summary>White then black 1-device-px lines just outside the image edge; never over image pixels.</summary>
+    private void DrawImageOutline(DrawingContext context, Rect imageDip)
+    {
+        var px = 1 / _scaling;
+        context.DrawRectangle(null, new ImmutablePen(Brushes.White, px), imageDip.Inflate(0.5 * px));
+        context.DrawRectangle(null, new ImmutablePen(Brushes.Black, px), imageDip.Inflate(1.5 * px));
     }
 
     private void DrawSelection(DrawingContext context, SKRect bounds)

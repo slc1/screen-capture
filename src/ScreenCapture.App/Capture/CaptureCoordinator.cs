@@ -96,7 +96,7 @@ public sealed class CaptureCoordinator
                     window.Show();
                 }
 
-                if (!_ended) WindowUnderCursor()?.Activate();
+                if (!_ended && WindowUnderCursor() is { } active) NativeForeground.Bring(active);
             }
             catch (Exception ex)
             {

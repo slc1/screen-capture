@@ -90,6 +90,11 @@ public sealed class HotkeyManager
                 ? settings with { AreaHotkey = hotkey }
                 : settings with { FullScreenHotkey = hotkey };
         }
+        catch (Exception ex)
+        {
+            FileLog.Error("Could not save settings", ex);
+            _services.Notifier.ShowError(_services.Loc.Format("Error_Unexpected", Program.LogPath));
+        }
         finally
         {
             // The in-memory settings already changed even if writing the file failed.

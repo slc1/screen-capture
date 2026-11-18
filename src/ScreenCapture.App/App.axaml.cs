@@ -5,6 +5,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using ScreenCapture.App.Capture;
+using ScreenCapture.App.Common;
 using ScreenCapture.App.Editor;
 using ScreenCapture.App.Services;
 using ScreenCapture.App.Settings;
@@ -69,6 +70,7 @@ public partial class App : Application
                 try
                 {
                     editor.Show();
+                    NativeForeground.Bring(editor);
                 }
                 catch
                 {

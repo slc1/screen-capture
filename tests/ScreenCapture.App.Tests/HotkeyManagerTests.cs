@@ -75,6 +75,26 @@ public sealed class HotkeyManagerTests : IDisposable
     }
 
     [Fact]
+    public void TryAssign_save_failure_is_logged_and_reported_without_throwing()
+    {
+        var log = Path.Combine(Path.GetTempPath(), "ScreenCaptureAppTests", Guid.NewGuid().ToString("N") + ".log");
+        FileLog.Init(log);
+        _manager.RegisterFromSettings();
+        Directory.CreateDirectory(_env.SettingsPath); // a directory where the file goes makes every save fail
+
+        var result = _manager.TryAssign(HotkeyId.CaptureArea, CtrlShiftQ);
+
+        Assert.Equal(HotkeyAssignResult.Ok, result);
+        Assert.Equal(CtrlShiftQ, _env.Hotkeys.Registered[HotkeyId.CaptureArea]);
+        Assert.Equal(CtrlShiftQ, _manager.Get(HotkeyId.CaptureArea));
+        Assert.Equal(1, _changed);
+        var text = File.ReadAllText(log);
+        Assert.Contains("Could not save settings", text);
+        var shown = _env.Services.Loc.Format("Error_Unexpected", "");
+        Assert.Equal(1, Count(text, shown));
+    }
+
+    [Fact]
     public void TryAssign_accepts_a_function_key_alone()
     {
         Assert.Equal(HotkeyAssignResult.Ok, _manager.TryAssign(HotkeyId.CaptureFullScreen, new Hotkey(HotkeyModifiers.None, "F9")));

@@ -138,6 +138,22 @@ public sealed class Win32HotkeyService : IGlobalHotkeyService
             "Right" => 0x27,
             "Down" => 0x28,
             "Pause" => 0x13,
+            // Avalonia's Key has aliases with one value; Key.ToString() picks one of them, so accept both.
+            "Return" or "Enter" => 0x0D,
+            "Back" => 0x08,
+            "Oem1" or "OemSemicolon" => 0xBA,
+            "Oem2" or "OemQuestion" => 0xBF,
+            "Oem3" or "OemTilde" => 0xC0,
+            "Oem4" or "OemOpenBrackets" => 0xDB,
+            "Oem5" or "OemPipe" => 0xDC,
+            "Oem6" or "OemCloseBrackets" => 0xDD,
+            "Oem7" or "OemQuotes" => 0xDE,
+            "Oem102" or "OemBackslash" => 0xE2,
+            "Multiply" => 0x6A,
+            "Add" => 0x6B,
+            "Subtract" => 0x6D,
+            "Decimal" => 0x6E,
+            "Divide" => 0x6F,
             _ => null,
         };
     }
