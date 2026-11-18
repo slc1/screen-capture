@@ -35,4 +35,20 @@ public class SelectionMathTests
         Assert.True(SelectionMath.IsTooSmall(new SKRectI(5, 5, 7, 50)));
         Assert.False(SelectionMath.IsTooSmall(new SKRectI(5, 5, 8, 8)));
     }
+
+    [Fact]
+    public void ToPixelRect_FractionalInput_RoundsOutward()
+    {
+        var r = SelectionMath.ToPixelRect(new SKPoint(10.2f, 10.2f), new SKPoint(20.2f, 20.2f), 1.0, new SKSizeI(100, 100));
+        Assert.Equal(new SKRectI(10, 10, 21, 21), r);
+    }
+
+    [Fact]
+    public void FullyOutside_IsClampedAndTooSmall()
+    {
+        var r = SelectionMath.ToPixelRect(new SKPoint(2000, 10), new SKPoint(2100, 50), 1, Image);
+        Assert.Equal(1920, r.Left);
+        Assert.Equal(1920, r.Right);
+        Assert.True(SelectionMath.IsTooSmall(r));
+    }
 }

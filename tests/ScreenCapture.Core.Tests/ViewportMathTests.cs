@@ -29,4 +29,27 @@ public class ViewportMathTests
         Assert.Equal(p.X, back.X, 2);
         Assert.Equal(p.Y, back.Y, 2);
     }
+
+    [Fact]
+    public void Fit_ZeroAvailable_ReturnsUsableViewport()
+    {
+        var v = ViewportMath.Fit(new SKSizeI(100, 100), new SKSize(0, 0));
+        Assert.True(v.Scale > 0);
+        var p = ViewportMath.ToImage(v, new SKPoint(10, 10));
+        Assert.True(float.IsFinite(p.X) && float.IsFinite(p.Y));
+    }
+
+    [Fact]
+    public void Fit_NegativeAvailable_ScaleIsPositive()
+    {
+        var v = ViewportMath.Fit(new SKSizeI(100, 100), new SKSize(-50, -20));
+        Assert.True(v.Scale > 0);
+    }
+
+    [Fact]
+    public void Fit_ZeroImage_ReturnsIdentity()
+    {
+        var v = ViewportMath.Fit(new SKSizeI(0, 0), new SKSize(800, 600));
+        Assert.Equal(new Viewport(1f, SKPoint.Empty), v);
+    }
 }
