@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="App_Name" xml:space="preserve"><value>ScreenCapture</value></data>
+  <data name="Tray_CaptureArea" xml:space="preserve"><value>Capture area</value></data>
+  <data name="Tray_CaptureFullScreen" xml:space="preserve"><value>Capture full screen</value></data>
+  <data name="Tray_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Tray_Exit" xml:space="preserve"><value>Exit</value></data>
+  <data name="Overlay_Hint" xml:space="preserve"><value>Drag to select an area. Esc to cancel.</value></data>
+  <data name="Editor_Title" xml:space="preserve"><value>ScreenCapture — Editor</value></data>
+  <data name="Tool_Select" xml:space="preserve"><value>Select</value></data>
+  <data name="Tool_Arrow" xml:space="preserve"><value>Arrow</value></data>
+  <data name="Tool_Line" xml:space="preserve"><value>Line</value></data>
+  <data name="Tool_Rectangle" xml:space="preserve"><value>Rectangle</value></data>
+  <data name="Tool_Marker" xml:space="preserve"><value>Marker</value></data>
+  <data name="Tool_Text" xml:space="preserve"><value>Text</value></data>
+  <data name="Tool_Blur" xml:space="preserve"><value>Blur</value></data>
+  <data name="Stroke_Thin" xml:space="preserve"><value>Thin</value></data>
+  <data name="Stroke_Medium" xml:space="preserve"><value>Medium</value></data>
+  <data name="Stroke_Thick" xml:space="preserve"><value>Thick</value></data>
+  <data name="Editor_Undo" xml:space="preserve"><value>Undo</value></data>
+  <data name="Editor_Redo" xml:space="preserve"><value>Redo</value></data>
+  <data name="Editor_Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Editor_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Save_JpgQualityTitle" xml:space="preserve"><value>JPG quality</value></data>
+  <data name="Common_OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common_Browse" xml:space="preserve"><value>Browse…</value></data>
+  <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_HotkeyArea" xml:space="preserve"><value>Capture area</value></data>
+  <data name="Settings_HotkeyFullScreen" xml:space="preserve"><value>Capture full screen</value></data>
+  <data name="Settings_HotkeyPrompt" xml:space="preserve"><value>Press a key combination…</value></data>
+  <data name="Settings_HotkeyNone" xml:space="preserve"><value>None</value></data>
+  <data name="Settings_HotkeyReset" xml:space="preserve"><value>Reset</value></data>
+  <data name="Settings_HotkeyClear" xml:space="preserve"><value>Clear</value></data>
+  <data name="Settings_DefaultFormat" xml:space="preserve"><value>Default format</value></data>
+  <data name="Settings_JpgQuality" xml:space="preserve"><value>JPG quality</value></data>
+  <data name="Settings_SaveFolder" xml:space="preserve"><value>Save folder</value></data>
+  <data name="Settings_StartWithWindows" xml:space="preserve"><value>Start with Windows</value></data>
+  <data name="Error_ClipboardFailed" xml:space="preserve"><value>Could not copy the image to the clipboard. Try again.</value></data>
+  <data name="Error_SaveFailed" xml:space="preserve"><value>Could not save the file: {0}</value></data>
+  <data name="Error_CaptureFailed" xml:space="preserve"><value>Could not capture the screen.</value></data>
+  <data name="Error_HotkeyTaken" xml:space="preserve"><value>The combination {0} is already used by another application.</value></data>
+  <data name="Error_HotkeyDuplicate" xml:space="preserve"><value>The combination {0} is already assigned to the other capture mode.</value></data>
+  <data name="Error_HotkeyInvalid" xml:space="preserve"><value>Add Ctrl, Alt, Shift or Win to this key.</value></data>
+  <data name="Error_SettingsCorrupt" xml:space="preserve"><value>The settings file was damaged. Default settings are used.</value></data>
+  <data name="Error_AutostartFailed" xml:space="preserve"><value>Could not change the start-with-Windows setting.</value></data>
+  <data name="Error_Unexpected" xml:space="preserve"><value>Unexpected error. Details were written to the log: {0}</value></data>
+</root>

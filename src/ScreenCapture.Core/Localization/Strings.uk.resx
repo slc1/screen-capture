@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="App_Name" xml:space="preserve"><value>ScreenCapture</value></data>
+  <data name="Tray_CaptureArea" xml:space="preserve"><value>Захопити область</value></data>
+  <data name="Tray_CaptureFullScreen" xml:space="preserve"><value>Захопити весь екран</value></data>
+  <data name="Tray_Settings" xml:space="preserve"><value>Налаштування</value></data>
+  <data name="Tray_Exit" xml:space="preserve"><value>Вихід</value></data>
+  <data name="Overlay_Hint" xml:space="preserve"><value>Виділіть область мишкою. Esc — скасувати.</value></data>
+  <data name="Editor_Title" xml:space="preserve"><value>ScreenCapture — Редактор</value></data>
+  <data name="Tool_Select" xml:space="preserve"><value>Вибір</value></data>
+  <data name="Tool_Arrow" xml:space="preserve"><value>Стрілка</value></data>
+  <data name="Tool_Line" xml:space="preserve"><value>Лінія</value></data>
+  <data name="Tool_Rectangle" xml:space="preserve"><value>Рамка</value></data>
+  <data name="Tool_Marker" xml:space="preserve"><value>Маркер</value></data>
+  <data name="Tool_Text" xml:space="preserve"><value>Текст</value></data>
+  <data name="Tool_Blur" xml:space="preserve"><value>Розмиття</value></data>
+  <data name="Stroke_Thin" xml:space="preserve"><value>Тонка</value></data>
+  <data name="Stroke_Medium" xml:space="preserve"><value>Середня</value></data>
+  <data name="Stroke_Thick" xml:space="preserve"><value>Товста</value></data>
+  <data name="Editor_Undo" xml:space="preserve"><value>Скасувати дію</value></data>
+  <data name="Editor_Redo" xml:space="preserve"><value>Повторити</value></data>
+  <data name="Editor_Copy" xml:space="preserve"><value>Копіювати</value></data>
+  <data name="Editor_Save" xml:space="preserve"><value>Зберегти</value></data>
+  <data name="Save_JpgQualityTitle" xml:space="preserve"><value>Якість JPG</value></data>
+  <data name="Common_OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Скасувати</value></data>
+  <data name="Common_Browse" xml:space="preserve"><value>Огляд…</value></data>
+  <data name="Settings_Title" xml:space="preserve"><value>Налаштування</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Мова</value></data>
+  <data name="Settings_HotkeyArea" xml:space="preserve"><value>Захопити область</value></data>
+  <data name="Settings_HotkeyFullScreen" xml:space="preserve"><value>Захопити весь екран</value></data>
+  <data name="Settings_HotkeyPrompt" xml:space="preserve"><value>Натисніть комбінацію клавіш…</value></data>
+  <data name="Settings_HotkeyNone" xml:space="preserve"><value>Немає</value></data>
+  <data name="Settings_HotkeyReset" xml:space="preserve"><value>Скинути</value></data>
+  <data name="Settings_HotkeyClear" xml:space="preserve"><value>Очистити</value></data>
+  <data name="Settings_DefaultFormat" xml:space="preserve"><value>Формат за замовчуванням</value></data>
+  <data name="Settings_JpgQuality" xml:space="preserve"><value>Якість JPG</value></data>
+  <data name="Settings_SaveFolder" xml:space="preserve"><value>Папка для збереження</value></data>
+  <data name="Settings_StartWithWindows" xml:space="preserve"><value>Запускати разом з Windows</value></data>
+  <data name="Error_ClipboardFailed" xml:space="preserve"><value>Не вдалося скопіювати зображення в буфер обміну. Спробуйте ще раз.</value></data>
+  <data name="Error_SaveFailed" xml:space="preserve"><value>Не вдалося зберегти файл: {0}</value></data>
+  <data name="Error_CaptureFailed" xml:space="preserve"><value>Не вдалося зробити знімок екрана.</value></data>
+  <data name="Error_HotkeyTaken" xml:space="preserve"><value>Комбінація {0} уже використовується іншою програмою.</value></data>
+  <data name="Error_HotkeyDuplicate" xml:space="preserve"><value>Комбінація {0} уже призначена іншому режиму захоплення.</value></data>
+  <data name="Error_HotkeyInvalid" xml:space="preserve"><value>Додайте до цієї клавіші Ctrl, Alt, Shift або Win.</value></data>
+  <data name="Error_SettingsCorrupt" xml:space="preserve"><value>Файл налаштувань пошкоджено. Використано налаштування за замовчуванням.</value></data>
+  <data name="Error_AutostartFailed" xml:space="preserve"><value>Не вдалося змінити автозапуск разом з Windows.</value></data>
+  <data name="Error_Unexpected" xml:space="preserve"><value>Неочікувана помилка. Деталі записано в журнал: {0}</value></data>
+</root>
