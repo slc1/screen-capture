@@ -1,4 +1,5 @@
 using ScreenCapture.Core.Annotations;
+using ScreenCapture.Core.Export;
 using ScreenCapture.Core.Rendering;
 using SkiaSharp;
 
@@ -94,5 +95,49 @@ public class AnnotationRendererTests
         var text = new TextAnnotation(Guid.NewGuid(), SKColors.Black, StrokeWidth.Medium, new SKPoint(5, 5), "Hi", 20f);
         using var result = AnnotationRenderer.Flatten(original, new Annotation[] { arrow, text });
         Assert.NotEqual(SKColors.White, result.GetPixel(60, 30));
+    }
+    [Fact]
+    public void Flatten_LightMarkerOnBlack_IsVisible()
+    {
+        using var original = Solid(50, 50, SKColors.Black);
+        var marker = new MarkerAnnotation(Guid.NewGuid(), SKColors.White, StrokeWidth.Medium, new SKPoint(5, 25), new SKPoint(45, 25));
+        using var result = AnnotationRenderer.Flatten(original, new Annotation[] { marker });
+        var p = result.GetPixel(25, 25);
+        Assert.NotEqual(SKColors.Black, p);
+        Assert.InRange((int)p.Red, 80, 120);
+    }
+
+    [Theory]
+    [InlineData(0xFFFFFFFFu, SKBlendMode.SrcOver)]
+    [InlineData(0xFFFFFF00u, SKBlendMode.SrcOver)]
+    [InlineData(0xFF000000u, SKBlendMode.Multiply)]
+    [InlineData(0xFFFF0000u, SKBlendMode.Multiply)]
+    [InlineData(0xFF00FF00u, SKBlendMode.Multiply)]
+    public void MarkerBlendMode_MultipliesOnlyNonLightColours(uint argb, SKBlendMode expected) =>
+        Assert.Equal(expected, AnnotationRenderer.MarkerBlendMode(new SKColor(argb)));
+
+    [Fact]
+    public void Flatten_OpaqueOriginal_EncodesPngWithoutAlpha()
+    {
+        using var original = new SKBitmap(new SKImageInfo(20, 20, SKColorType.Bgra8888, SKAlphaType.Opaque));
+        original.Erase(SKColors.Blue);
+        var marker = new MarkerAnnotation(Guid.NewGuid(), SKColors.Red, StrokeWidth.Medium, new SKPoint(2, 10), new SKPoint(18, 10));
+        using var result = AnnotationRenderer.Flatten(original, new Annotation[] { marker });
+        Assert.Equal(SKAlphaType.Opaque, result.AlphaType);
+
+        var png = ImageExporter.Encode(result, ImageFormatKind.Png, 100);
+        // IHDR colour type byte: 2 = RGB, 6 = RGBA.
+        Assert.Equal(2, png[25]);
+        using var decoded = SKBitmap.Decode(png);
+        Assert.Equal(SKColors.Blue, decoded.GetPixel(0, 0));
+    }
+
+    [Fact]
+    public void Flatten_TranslucentOriginal_KeepsAlpha()
+    {
+        using var original = Solid(10, 10, SKColors.Blue.WithAlpha(128));
+        using var result = AnnotationRenderer.Flatten(original, Array.Empty<Annotation>());
+        Assert.NotEqual(SKAlphaType.Opaque, result.AlphaType);
+        Assert.Equal(128, result.GetPixel(5, 5).Alpha);
     }
 }

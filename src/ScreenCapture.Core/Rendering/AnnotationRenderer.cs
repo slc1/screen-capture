@@ -6,10 +6,14 @@ namespace ScreenCapture.Core.Rendering;
 public static class AnnotationRenderer
 {
     private const int BlurBlock = 12;
+    private const double MultiplyMaxLuminance = 0.8;
 
+    /// <summary>The result is <see cref="SKAlphaType.Opaque"/> when the original is, so PNG encodes it as RGB.</summary>
     public static SKBitmap Flatten(SKBitmap original, IEnumerable<Annotation> annotations)
     {
-        var result = new SKBitmap(original.Width, original.Height);
+        var info = new SKImageInfo(original.Width, original.Height, SKImageInfo.PlatformColorType,
+            original.AlphaType == SKAlphaType.Opaque ? SKAlphaType.Opaque : SKAlphaType.Premul);
+        var result = new SKBitmap(info);
         using var canvas = new SKCanvas(result);
         Draw(canvas, original, annotations);
         return result;
@@ -87,9 +91,24 @@ public static class AnnotationRenderer
             Style = SKPaintStyle.Stroke,
             StrokeWidth = (int)m.Width * 4,
             StrokeCap = SKStrokeCap.Square,
-            BlendMode = SKBlendMode.Multiply,
+            BlendMode = MarkerBlendMode(m.Color),
         };
         canvas.DrawLine(m.Start, m.End, paint);
+    }
+
+    /// <summary>Multiply hides light colours (white multiplies to no change), so those are painted normally.</summary>
+    public static SKBlendMode MarkerBlendMode(SKColor color) =>
+        RelativeLuminance(color) <= MultiplyMaxLuminance ? SKBlendMode.Multiply : SKBlendMode.SrcOver;
+
+    private static double RelativeLuminance(SKColor c)
+    {
+        static double Linear(byte channel)
+        {
+            var v = channel / 255.0;
+            return v <= 0.04045 ? v / 12.92 : Math.Pow((v + 0.055) / 1.055, 2.4);
+        }
+
+        return 0.2126 * Linear(c.Red) + 0.7152 * Linear(c.Green) + 0.0722 * Linear(c.Blue);
     }
 
     // Same typeface setup as TextAnnotation.Bounds so measured and drawn text agree.
