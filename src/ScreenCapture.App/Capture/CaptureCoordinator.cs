@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using ScreenCapture.App.Common;
 using ScreenCapture.App.Services;
 using ScreenCapture.Core.Capture;
@@ -8,27 +9,28 @@ using SkiaSharp;
 namespace ScreenCapture.App.Capture;
 
 /// <summary>
-/// Runs one capture at a time. <c>openEditor</c> takes ownership of the bitmap it receives.
+/// Runs one capture at a time. <c>openEditor</c> takes ownership of the bitmap it receives and returns the
+/// shown editor window.
 /// </summary>
 public sealed class CaptureCoordinator
 {
     private readonly AppServices _services;
-    private readonly Action<SKBitmap> _openEditor;
+    private readonly Func<SKBitmap, TopLevel> _openEditor;
 
-    public CaptureCoordinator(AppServices services, Action<SKBitmap> openEditor)
+    public CaptureCoordinator(AppServices services, Func<SKBitmap, TopLevel> openEditor)
     {
         _services = services;
         _openEditor = openEditor;
     }
 
-    public void StartArea()
+    public void StartArea(CaptureTiming timing)
     {
         var lease = _services.Gate.TryAcquire();
         if (lease is null) return;
-        new AreaSession(this, lease).Start();
+        new AreaSession(this, lease, timing).Start();
     }
 
-    public void StartFullScreen()
+    public void StartFullScreen(CaptureTiming timing)
     {
         SKBitmap image;
         using (var lease = _services.Gate.TryAcquire())
@@ -37,6 +39,7 @@ public sealed class CaptureCoordinator
             try
             {
                 image = _services.Capturer.CaptureMonitorAtCursor().Image;
+                timing.Mark("captured");
             }
             catch (Exception ex)
             {
@@ -45,14 +48,19 @@ public sealed class CaptureCoordinator
             }
         }
 
-        OpenEditor(image);
+        OpenEditor(image, timing);
     }
 
-    private void OpenEditor(SKBitmap image)
+    private void OpenEditor(SKBitmap image, CaptureTiming? timing)
     {
         try
         {
-            _openEditor(image);
+            var editor = _openEditor(image);
+            if (timing is not null)
+            {
+                timing.Mark("editor shown");
+                editor.RequestAnimationFrame(_ => timing.Complete("editor first frame"));
+            }
         }
         catch (Exception ex)
         {
@@ -69,7 +77,7 @@ public sealed class CaptureCoordinator
     }
 
     /// <summary>Owns the snapshots, the overlays and the gate lease until the first end path wins.</summary>
-    private sealed class AreaSession(CaptureCoordinator owner, CaptureLease lease)
+    private sealed class AreaSession(CaptureCoordinator owner, CaptureLease lease, CaptureTiming timing)
     {
         private readonly List<ScreenSnapshot> _snapshots = [];
         private readonly List<OverlayWindow> _windows = [];
@@ -80,9 +88,15 @@ public sealed class CaptureCoordinator
             try
             {
                 _snapshots.AddRange(owner._services.Capturer.CaptureAllMonitors());
+                timing.Mark("captured");
                 foreach (var snapshot in _snapshots)
                 {
                     var window = new OverlayWindow(snapshot);
+                    window.Opened += (_, _) =>
+                    {
+                        timing.Mark("overlay opened");
+                        window.RequestAnimationFrame(_ => timing.Complete("overlay first frame"));
+                    };
                     window.SelectionCompleted += OnSelectionCompleted;
                     window.CancelRequested += End;
                     window.CoverageFailed += OnCoverageFailed;
@@ -90,12 +104,15 @@ public sealed class CaptureCoordinator
                     _windows.Add(window);
                 }
 
+                timing.Mark("overlays created");
+
                 foreach (var window in _windows)
                 {
                     if (_ended) return;
                     window.Show();
                 }
 
+                timing.Mark("overlays shown");
                 if (!_ended && WindowUnderCursor() is { } active) NativeForeground.Bring(active);
             }
             catch (Exception ex)
@@ -137,7 +154,7 @@ public sealed class CaptureCoordinator
             }
 
             End();
-            owner.OpenEditor(crop);
+            owner.OpenEditor(crop, null);
         }
 
         private static SKBitmap Crop(SKBitmap source, SKRectI rect)

@@ -41,6 +41,31 @@ public partial class OverlayWindow : Window
 
     public ScreenSnapshot? Snapshot { get; }
 
+    /// <summary>
+    /// Creates, shows and closes an invisible overlay once, so the first capture does not pay for loading
+    /// its XAML, styles and window code.
+    /// </summary>
+    public static void Prewarm()
+    {
+        try
+        {
+            var window = new OverlayWindow
+            {
+                Opacity = 0,
+                ShowActivated = false,
+                Width = 1,
+                Height = 1,
+                Position = new PixelPoint(-32000, -32000),
+            };
+            window.Show();
+            window.Close();
+        }
+        catch (Exception ex)
+        {
+            FileLog.Error("Could not pre-warm the overlay", ex);
+        }
+    }
+
     /// <summary>Raised with the selection in image pixels when a large-enough drag ends.</summary>
     public event Action<OverlayWindow, SKRectI>? SelectionCompleted;
 

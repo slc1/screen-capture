@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using ScreenCapture.App.Capture;
 using ScreenCapture.App.Common;
 using ScreenCapture.App.Services;
 using ScreenCapture.Core.Diagnostics;
@@ -25,15 +26,20 @@ public sealed class TrayController : IDisposable
     private TrayMenuWindow? _menuWindow;
     private bool _disposed;
 
-    public TrayController(AppServices services, Action captureArea, Action captureFullScreen, Action openSettings)
+    public TrayController(
+        AppServices services,
+        Action<CaptureTiming> captureArea,
+        Action<CaptureTiming> captureFullScreen,
+        Action openSettings)
     {
         _services = services;
-        _captureArea = () => AfterMenuCloses(captureArea);
-        _captureFullScreen = () => AfterMenuCloses(captureFullScreen);
+        _captureArea = () => AfterMenuCloses(captureArea, new CaptureTiming("area, tray menu"));
+        _captureFullScreen = () => AfterMenuCloses(captureFullScreen, new CaptureTiming("full screen, tray menu"));
         _openSettings = openSettings;
 
-        _areaItem.Click += (_, _) => _captureArea();
-        _fullItem.Click += (_, _) => _captureFullScreen();
+        _areaItem.Click += (_, _) => AfterMenuCloses(captureArea, new CaptureTiming("area, native tray menu"));
+        _fullItem.Click += (_, _) =>
+            AfterMenuCloses(captureFullScreen, new CaptureTiming("full screen, native tray menu"));
         _settingsItem.Click += (_, _) => _openSettings();
         _exitItem.Click += (_, _) => Exit();
 
@@ -82,12 +88,15 @@ public sealed class TrayController : IDisposable
     /// Screen capture reads the composited desktop, which still shows the just-closed menu until DWM
     /// composes another frame, so the capture waits for pending UI work plus one DWM frame.
     /// </summary>
-    private static void AfterMenuCloses(Action capture) =>
-        Dispatcher.UIThread.Post(() =>
-        {
-            if (!NativeDwm.Flush()) FileLog.Info("DwmFlush failed before capture");
-            capture();
-        }, DispatcherPriority.Background);
+    private static void AfterMenuCloses(Action<CaptureTiming> capture, CaptureTiming timing) =>
+        Dispatcher.UIThread.Post(() => FlushAndCapture(capture, timing), DispatcherPriority.Background);
+
+    private static void FlushAndCapture(Action<CaptureTiming> capture, CaptureTiming timing)
+    {
+        if (!NativeDwm.Flush()) FileLog.Info("DwmFlush failed before capture");
+        timing.Mark("menu closed");
+        capture(timing);
+    }
 
     private static string WithHotkey(string text, Hotkey? hotkey) =>
         hotkey is null ? text : $"{text} ({hotkey})";

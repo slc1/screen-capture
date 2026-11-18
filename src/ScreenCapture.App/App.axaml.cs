@@ -101,6 +101,7 @@ public partial class App : Application
             {
                 editor.Show();
                 NativeForeground.Bring(editor);
+                return editor;
             }
             catch
             {
@@ -112,9 +113,11 @@ public partial class App : Application
         var hotkeys = new HotkeyManager(services.Hotkeys, services);
         hotkeys.Triggered += (_, id) =>
         {
+            var area = id == HotkeyId.CaptureArea;
+            var timing = new CaptureTiming(area ? "area, hotkey" : "full screen, hotkey");
             FileLog.Info($"Hotkey {id}");
-            if (id == HotkeyId.CaptureArea) capture.StartArea();
-            else capture.StartFullScreen();
+            if (area) capture.StartArea(timing);
+            else capture.StartFullScreen(timing);
         };
 
         Tray = new TrayController(
@@ -128,5 +131,6 @@ public partial class App : Application
             Dispatcher.UIThread.Post(() => services.Notifier.ShowError(loc["Error_SettingsCorrupt"]));
 
         hotkeys.RegisterFromSettings();
+        Dispatcher.UIThread.Post(OverlayWindow.Prewarm, DispatcherPriority.Background);
     }
 }
