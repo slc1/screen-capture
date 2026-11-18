@@ -167,3 +167,9 @@ Windows implementations:
 - Blur algorithm (gaussian or pixelation).
 - Whether to confirm closing an editor with unsaved changes.
 - Logging and unhandled-exception handling (no silent crashes).
+
+## Addendum (2026-11-18, author request during implementation)
+
+- The editor area around the screenshot is a dark checkerboard (not a flat colour), and the image has a two-tone (white/black) 1-px outline, so the boundary of the captured image is always obvious — including for white screenshots. Neither is part of the exported image.
+- Annotations cannot be drawn outside the image: points are clamped to the image edges, and an annotation cannot be dragged entirely off the image.
+- The overlay selection border is two-tone dashed (black/white) so it is visible on any background.

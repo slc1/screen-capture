@@ -1,0 +1,25 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:ScreenCapture.Core.Localization"
+        x:Class="ScreenCapture.App.Editor.JpegQualityDialog"
+        Title="{Binding [Save_JpgQualityTitle], Source={x:Static loc:Loc.Instance}}"
+        Width="360"
+        SizeToContent="Height"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+    <StackPanel Margin="20" Spacing="16">
+        <DockPanel>
+            <TextBlock DockPanel.Dock="Right" x:Name="ValueText" MinWidth="32" TextAlignment="Right" VerticalAlignment="Center" />
+            <Slider x:Name="QualitySlider" Minimum="1" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" />
+        </DockPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button MinWidth="80" IsDefault="True" HorizontalContentAlignment="Center"
+                    Content="{Binding [Common_OK], Source={x:Static loc:Loc.Instance}}"
+                    Click="OnOk" />
+            <Button MinWidth="80" IsCancel="True" HorizontalContentAlignment="Center"
+                    Content="{Binding [Common_Cancel], Source={x:Static loc:Loc.Instance}}"
+                    Click="OnCancel" />
+        </StackPanel>
+    </StackPanel>
+</Window>

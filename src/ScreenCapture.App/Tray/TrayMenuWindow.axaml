@@ -1,0 +1,44 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:ScreenCapture.Core.Localization"
+        x:Class="ScreenCapture.App.Tray.TrayMenuWindow"
+        Width="280"
+        SizeToContent="Height"
+        CanResize="False"
+        SystemDecorations="None"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowStartupLocation="Manual"
+        Background="{DynamicResource SystemRegionBrush}">
+    <Window.Styles>
+        <Style Selector="Button.item">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="12,8" />
+        </Style>
+    </Window.Styles>
+    <Border BorderThickness="1"
+            BorderBrush="{DynamicResource SystemBaseLowColor}"
+            Padding="4">
+        <StackPanel>
+            <Button Classes="item" Click="OnArea">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{Binding [Tray_CaptureArea], Source={x:Static loc:Loc.Instance}}" />
+                    <TextBlock x:Name="AreaHotkey" Grid.Column="1" Opacity="0.6" />
+                </Grid>
+            </Button>
+            <Button Classes="item" Click="OnFullScreen">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{Binding [Tray_CaptureFullScreen], Source={x:Static loc:Loc.Instance}}" />
+                    <TextBlock x:Name="FullHotkey" Grid.Column="1" Opacity="0.6" />
+                </Grid>
+            </Button>
+            <Separator Margin="0,4" />
+            <Button Classes="item" Click="OnSettings"
+                    Content="{Binding [Tray_Settings], Source={x:Static loc:Loc.Instance}}" />
+            <Button Classes="item" Click="OnExit"
+                    Content="{Binding [Tray_Exit], Source={x:Static loc:Loc.Instance}}" />
+        </StackPanel>
+    </Border>
+</Window>

@@ -1,0 +1,95 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:ScreenCapture.Core.Localization"
+        xmlns:hk="using:ScreenCapture.Core.Hotkeys"
+        xmlns:settings="using:ScreenCapture.App.Settings"
+        x:Class="ScreenCapture.App.Settings.SettingsWindow"
+        Title="{Binding [Settings_Title], Source={x:Static loc:Loc.Instance}}"
+        Width="480"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen">
+    <Window.Styles>
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+        </Style>
+        <Style Selector="TextBlock.error">
+            <Setter Property="Foreground" Value="#D13438" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,4,0,0" />
+        </Style>
+    </Window.Styles>
+
+    <StackPanel Margin="20" Spacing="18">
+        <StackPanel>
+            <TextBlock Classes="label" Text="{Binding [Settings_Language], Source={x:Static loc:Loc.Instance}}" />
+            <ComboBox HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding Languages}"
+                      SelectedItem="{Binding SelectedLanguage}"
+                      DisplayMemberBinding="{Binding DisplayName}" />
+        </StackPanel>
+
+        <StackPanel>
+            <TextBlock Classes="label" Text="{Binding [Settings_HotkeyArea], Source={x:Static loc:Loc.Instance}}" />
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                <settings:HotkeyBox x:Name="AreaBox" Id="CaptureArea" Hotkey="{Binding AreaHotkey}" />
+                <Button Grid.Column="1"
+                        Content="{Binding [Settings_HotkeyReset], Source={x:Static loc:Loc.Instance}}"
+                        Command="{Binding ResetCommand}" CommandParameter="{x:Static hk:HotkeyId.CaptureArea}" />
+                <Button Grid.Column="2"
+                        Content="{Binding [Settings_HotkeyClear], Source={x:Static loc:Loc.Instance}}"
+                        Command="{Binding ClearCommand}" CommandParameter="{x:Static hk:HotkeyId.CaptureArea}" />
+            </Grid>
+            <TextBlock Classes="error" Text="{Binding AreaError}"
+                       IsVisible="{Binding AreaError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+
+        <StackPanel>
+            <TextBlock Classes="label" Text="{Binding [Settings_HotkeyFullScreen], Source={x:Static loc:Loc.Instance}}" />
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                <settings:HotkeyBox x:Name="FullScreenBox" Id="CaptureFullScreen" Hotkey="{Binding FullScreenHotkey}" />
+                <Button Grid.Column="1"
+                        Content="{Binding [Settings_HotkeyReset], Source={x:Static loc:Loc.Instance}}"
+                        Command="{Binding ResetCommand}" CommandParameter="{x:Static hk:HotkeyId.CaptureFullScreen}" />
+                <Button Grid.Column="2"
+                        Content="{Binding [Settings_HotkeyClear], Source={x:Static loc:Loc.Instance}}"
+                        Command="{Binding ClearCommand}" CommandParameter="{x:Static hk:HotkeyId.CaptureFullScreen}" />
+            </Grid>
+            <TextBlock Classes="error" Text="{Binding FullScreenError}"
+                       IsVisible="{Binding FullScreenError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+
+        <StackPanel>
+            <TextBlock Classes="label" Text="{Binding [Settings_DefaultFormat], Source={x:Static loc:Loc.Instance}}" />
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <!-- File format names are not translated. -->
+                <RadioButton GroupName="Format" Content="PNG" IsChecked="{Binding IsPng}" />
+                <RadioButton GroupName="Format" Content="JPG" IsChecked="{Binding IsJpg}" />
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel>
+            <TextBlock Classes="label" Text="{Binding [Settings_JpgQuality], Source={x:Static loc:Loc.Instance}}" />
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Right" MinWidth="32" TextAlignment="Right" VerticalAlignment="Center"
+                           Text="{Binding JpgQuality}" />
+                <Slider Minimum="1" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True"
+                        Value="{Binding JpgQuality}" />
+            </DockPanel>
+        </StackPanel>
+
+        <StackPanel>
+            <TextBlock Classes="label" Text="{Binding [Settings_SaveFolder], Source={x:Static loc:Loc.Instance}}" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <TextBox IsReadOnly="True" Text="{Binding SaveFolder}" />
+                <Button Grid.Column="1"
+                        Content="{Binding [Common_Browse], Source={x:Static loc:Loc.Instance}}"
+                        Click="OnBrowse" />
+            </Grid>
+        </StackPanel>
+
+        <CheckBox Content="{Binding [Settings_StartWithWindows], Source={x:Static loc:Loc.Instance}}"
+                  IsChecked="{Binding StartWithWindows}" />
+    </StackPanel>
+</Window>
