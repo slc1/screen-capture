@@ -11,7 +11,7 @@ public static class CrosshairGeometry
     public const int ArmLength = 12;
 
     /// <summary>
-    /// The pointer pixel is floor(DIP * scale), with a small epsilon against FP error such as 5.6 * 1.25 = 6.999999. Each of the four arms covers ArmLength pixels starting at
+    /// The pointer pixel is floor(DIP * scale), with a small epsilon so a product that lands a hair below an integer through FP error still maps to that pixel. Each of the four arms covers ArmLength pixels starting at
     /// offset Gap + 1 from it (so Gap pixels stay free). Pixels outside [0, width) x [0, height) are omitted.
     /// Order: left, right, up, down; each arm from the nearest pixel outward.
     /// </summary>

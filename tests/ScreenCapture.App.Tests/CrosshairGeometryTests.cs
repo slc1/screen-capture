@@ -31,11 +31,14 @@ public sealed class CrosshairGeometryTests
     [Fact]
     public void Pointer_pixel_is_not_one_low_from_floating_point_error()
     {
-        // 5.6 * 1.25 evaluates to 6.999999..., which must still be pixel 7.
-        var p = CrosshairGeometry.ArmPixels(5.6, 5.6, 1.25, 100, 100);
+        // (61 / 1.75) * 1.75 evaluates to 60.99999999999999 in IEEE double; it must still be pixel 61.
+        var dip = 61 / 1.75;
+        Assert.True(dip * 1.75 < 61);
 
-        Assert.Contains((7 + 4, 7), p);
-        Assert.Contains((7, 7 + 4), p);
+        var p = CrosshairGeometry.ArmPixels(dip, dip, 1.75, 200, 200);
+
+        Assert.Contains((61 + 4, 61), p);
+        Assert.Contains((61, 61 + 4), p);
     }
 
     [Theory]
