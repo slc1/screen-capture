@@ -14,6 +14,8 @@ namespace ScreenCapture.App.Tray;
 
 public sealed class TrayController : IDisposable
 {
+    private static readonly TimeSpan MenuFadeWait = TimeSpan.FromMilliseconds(300);
+
     private readonly AppServices _services;
     private readonly Action _captureArea;
     private readonly Action _captureFullScreen;
@@ -37,9 +39,9 @@ public sealed class TrayController : IDisposable
         _captureFullScreen = () => AfterMenuCloses(captureFullScreen, new CaptureTiming("full screen, tray menu"));
         _openSettings = openSettings;
 
-        _areaItem.Click += (_, _) => AfterMenuCloses(captureArea, new CaptureTiming("area, native tray menu"));
+        _areaItem.Click += (_, _) => AfterNativeMenuCloses(captureArea, new CaptureTiming("area, native tray menu"));
         _fullItem.Click += (_, _) =>
-            AfterMenuCloses(captureFullScreen, new CaptureTiming("full screen, native tray menu"));
+            AfterNativeMenuCloses(captureFullScreen, new CaptureTiming("full screen, native tray menu"));
         _settingsItem.Click += (_, _) => _openSettings();
         _exitItem.Click += (_, _) => Exit();
 
@@ -90,6 +92,25 @@ public sealed class TrayController : IDisposable
     /// </summary>
     private static void AfterMenuCloses(Action<CaptureTiming> capture, CaptureTiming timing) =>
         Dispatcher.UIThread.Post(() => FlushAndCapture(capture, timing), DispatcherPriority.Background);
+
+    /// <summary>
+    /// The native menu fades out over several frames when menu or selection fade is on, so one DWM frame is
+    /// not enough there; the wait is a timer so the UI thread keeps pumping meanwhile.
+    /// </summary>
+    private static void AfterNativeMenuCloses(Action<CaptureTiming> capture, CaptureTiming timing)
+    {
+        if (!NativeMenuFade.IsEnabled())
+        {
+            AfterMenuCloses(capture, timing);
+            return;
+        }
+
+        DispatcherTimer.RunOnce(() =>
+        {
+            timing.Mark("menu fade wait");
+            FlushAndCapture(capture, timing);
+        }, MenuFadeWait);
+    }
 
     private static void FlushAndCapture(Action<CaptureTiming> capture, CaptureTiming timing)
     {
