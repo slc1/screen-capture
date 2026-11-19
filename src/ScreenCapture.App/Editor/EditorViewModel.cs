@@ -74,7 +74,14 @@ public sealed partial class EditorViewModel : ObservableObject
     private void SelectTool(EditorTool tool) => Tool = tool;
 
     [RelayCommand]
-    private void SelectWidth(StrokeWidth width) => Width = width;
+    private void SelectWidth(StrokeWidth width)
+    {
+        Width = width;
+        WidthPicked?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>Raised on every pick, even of the current width, so the view can close the picker.</summary>
+    public event EventHandler? WidthPicked;
 
     [ObservableProperty]
     private ColorSwatch? _selectedSwatch;

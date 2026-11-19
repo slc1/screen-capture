@@ -1,4 +1,5 @@
 using ScreenCapture.App.Editor;
+using ScreenCapture.Core.Annotations;
 using ScreenCapture.Core.Editing;
 using ScreenCapture.Core.Export;
 using SkiaSharp;
@@ -55,6 +56,31 @@ public sealed class EditorViewModelTests : IDisposable
         vm.SelectColorCommand.Execute(vm.SelectedSwatch);
 
         Assert.Equal(1, picked);
+    }
+
+    [Fact]
+    public void Picking_a_width_updates_session_and_raises_WidthPicked()
+    {
+        var vm = CreateViewModel();
+        var picked = 0;
+        vm.WidthPicked += (_, _) => picked++;
+
+        vm.SelectWidthCommand.Execute(StrokeWidth.ExtraThick);
+
+        Assert.Equal(StrokeWidth.ExtraThick, vm.Width);
+        Assert.Equal(StrokeWidth.ExtraThick, vm.Session.Width);
+        Assert.Equal(1, picked);
+    }
+
+    [Fact]
+    public void Every_width_has_a_distinct_increasing_preview_thickness()
+    {
+        var thicknesses = Enum.GetValues<StrokeWidth>().OrderBy(w => (int)w)
+            .Select(StrokePreviewConverter.Thickness).ToList();
+
+        Assert.Equal(5, thicknesses.Count);
+        Assert.Equal(thicknesses.OrderBy(t => t), thicknesses);
+        Assert.Equal(thicknesses.Count, thicknesses.Distinct().Count());
     }
 
     private sealed class NullHost : IEditorHost

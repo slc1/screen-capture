@@ -43,6 +43,30 @@
         <Style Selector="Button.swatch.selected">
             <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
         </Style>
+        <Style Selector="Button.widthOption">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="MinWidth" Value="160" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Padding" Value="8,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Button.widthOption.selected">
+            <Setter Property="Background" Value="{DynamicResource ButtonBackgroundPressed}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
+        </Style>
+        <Style Selector="Button.widthOption Path">
+            <Setter Property="Stroke" Value="{Binding $parent[Button].Foreground}" />
+            <Setter Property="StrokeLineCap" Value="Flat" />
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="20" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.widthOption TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
         <Style Selector="Rectangle.separator">
             <Setter Property="Width" Value="1" />
             <Setter Property="Height" Value="22" />
@@ -152,23 +176,63 @@
 
                         <Rectangle Classes="separator" />
 
-                        <Button Classes="tool"
-                                Classes.selected="{Binding Width, Converter={x:Static common:EqualsConverter.Instance}, ConverterParameter={x:Static ann:StrokeWidth.Thin}}"
-                                Command="{Binding SelectWidthCommand}" CommandParameter="{x:Static ann:StrokeWidth.Thin}"
-                                ToolTip.Tip="{Binding [Stroke_Thin], Source={x:Static loc:Loc.Instance}}">
-                            <Path Data="M3,10 L17,10" StrokeThickness="1" />
-                        </Button>
-                        <Button Classes="tool"
-                                Classes.selected="{Binding Width, Converter={x:Static common:EqualsConverter.Instance}, ConverterParameter={x:Static ann:StrokeWidth.Medium}}"
-                                Command="{Binding SelectWidthCommand}" CommandParameter="{x:Static ann:StrokeWidth.Medium}"
-                                ToolTip.Tip="{Binding [Stroke_Medium], Source={x:Static loc:Loc.Instance}}">
-                            <Path Data="M3,10 L17,10" StrokeThickness="2.5" />
-                        </Button>
-                        <Button Classes="tool"
-                                Classes.selected="{Binding Width, Converter={x:Static common:EqualsConverter.Instance}, ConverterParameter={x:Static ann:StrokeWidth.Thick}}"
-                                Command="{Binding SelectWidthCommand}" CommandParameter="{x:Static ann:StrokeWidth.Thick}"
-                                ToolTip.Tip="{Binding [Stroke_Thick], Source={x:Static loc:Loc.Instance}}">
-                            <Path Data="M3,10 L17,10" StrokeThickness="5" />
+                        <Button x:Name="WidthButton"
+                                Classes="tool"
+                                Width="44"
+                                ToolTip.Tip="{Binding [Editor_Width], Source={x:Static loc:Loc.Instance}}">
+                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <Path Data="M0,10 L18,10" Width="18"
+                                      StrokeLineCap="Flat"
+                                      StrokeThickness="{Binding Width, Converter={x:Static editor:StrokePreviewConverter.Instance}}" />
+                                <Path Data="M0,0 L3.5,3.5 L7,0" Width="7" Height="4" StrokeThickness="1.4"
+                                      VerticalAlignment="Center" />
+                            </StackPanel>
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                    <StackPanel Spacing="2">
+                                        <Button Classes="widthOption"
+                                                Classes.selected="{Binding Width, Converter={x:Static common:EqualsConverter.Instance}, ConverterParameter={x:Static ann:StrokeWidth.ExtraThin}}"
+                                                Command="{Binding SelectWidthCommand}" CommandParameter="{x:Static ann:StrokeWidth.ExtraThin}">
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <Path Data="M0,10 L28,10" StrokeThickness="1" />
+                                                <TextBlock Text="{Binding [Stroke_ExtraThin], Source={x:Static loc:Loc.Instance}}" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Classes="widthOption"
+                                                Classes.selected="{Binding Width, Converter={x:Static common:EqualsConverter.Instance}, ConverterParameter={x:Static ann:StrokeWidth.Thin}}"
+                                                Command="{Binding SelectWidthCommand}" CommandParameter="{x:Static ann:StrokeWidth.Thin}">
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <Path Data="M0,10 L28,10" StrokeThickness="1.5" />
+                                                <TextBlock Text="{Binding [Stroke_Thin], Source={x:Static loc:Loc.Instance}}" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Classes="widthOption"
+                                                Classes.selected="{Binding Width, Converter={x:Static common:EqualsConverter.Instance}, ConverterParameter={x:Static ann:StrokeWidth.Medium}}"
+                                                Command="{Binding SelectWidthCommand}" CommandParameter="{x:Static ann:StrokeWidth.Medium}">
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <Path Data="M0,10 L28,10" StrokeThickness="2.5" />
+                                                <TextBlock Text="{Binding [Stroke_Medium], Source={x:Static loc:Loc.Instance}}" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Classes="widthOption"
+                                                Classes.selected="{Binding Width, Converter={x:Static common:EqualsConverter.Instance}, ConverterParameter={x:Static ann:StrokeWidth.Thick}}"
+                                                Command="{Binding SelectWidthCommand}" CommandParameter="{x:Static ann:StrokeWidth.Thick}">
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <Path Data="M0,10 L28,10" StrokeThickness="4" />
+                                                <TextBlock Text="{Binding [Stroke_Thick], Source={x:Static loc:Loc.Instance}}" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Classes="widthOption"
+                                                Classes.selected="{Binding Width, Converter={x:Static common:EqualsConverter.Instance}, ConverterParameter={x:Static ann:StrokeWidth.ExtraThick}}"
+                                                Command="{Binding SelectWidthCommand}" CommandParameter="{x:Static ann:StrokeWidth.ExtraThick}">
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <Path Data="M0,10 L28,10" StrokeThickness="6" />
+                                                <TextBlock Text="{Binding [Stroke_ExtraThick], Source={x:Static loc:Loc.Instance}}" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
                         </Button>
 
                         <Rectangle Classes="separator" />

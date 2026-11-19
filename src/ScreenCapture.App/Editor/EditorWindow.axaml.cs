@@ -31,6 +31,7 @@ public partial class EditorWindow : Window, IEditorHost
         _session = new EditorSession(image);
         var vm = new EditorViewModel(_session, services, this);
         vm.ColorPicked += (_, _) => ColorButton.Flyout?.Hide();
+        vm.WidthPicked += (_, _) => WidthButton.Flyout?.Hide();
         DataContext = vm;
         Surface.Session = _session;
         Surface.TextRequested += BeginText;

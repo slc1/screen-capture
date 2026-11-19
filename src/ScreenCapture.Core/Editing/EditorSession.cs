@@ -72,11 +72,13 @@ public sealed class EditorSession
     /// <summary>Selection hit tolerance in image pixels; the view keeps it at a constant screen distance.</summary>
     public float HitTolerance { get; set; } = 4f;
 
-    /// <summary>Font size a new text annotation gets at the current width: 16 / 20 / 24 px.</summary>
+    /// <summary>Font size a new text annotation gets at the current width: 12 / 16 / 20 / 24 / 32 px.</summary>
     public float TextFontSize => Width switch
     {
+        StrokeWidth.ExtraThin => 12f,
         StrokeWidth.Thin => 16f,
         StrokeWidth.Thick => 24f,
+        StrokeWidth.ExtraThick => 32f,
         _ => 20f,
     };
 

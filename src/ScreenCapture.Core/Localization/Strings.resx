@@ -22,6 +22,9 @@
   <data name="Stroke_Medium" xml:space="preserve"><value>Medium</value></data>
   <data name="Stroke_Thick" xml:space="preserve"><value>Thick</value></data>
   <data name="Editor_Color" xml:space="preserve"><value>Color</value></data>
+  <data name="Editor_Width" xml:space="preserve"><value>Thickness and text size</value></data>
+  <data name="Stroke_ExtraThin" xml:space="preserve"><value>Extra thin</value></data>
+  <data name="Stroke_ExtraThick" xml:space="preserve"><value>Extra thick</value></data>
   <data name="Editor_Undo" xml:space="preserve"><value>Undo</value></data>
   <data name="Editor_Redo" xml:space="preserve"><value>Redo</value></data>
   <data name="Editor_Copy" xml:space="preserve"><value>Copy</value></data>
