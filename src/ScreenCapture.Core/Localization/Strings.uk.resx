@@ -21,6 +21,10 @@
   <data name="Stroke_Thin" xml:space="preserve"><value>Тонка</value></data>
   <data name="Stroke_Medium" xml:space="preserve"><value>Середня</value></data>
   <data name="Stroke_Thick" xml:space="preserve"><value>Товста</value></data>
+  <data name="Editor_Color" xml:space="preserve"><value>Колір</value></data>
+  <data name="Editor_Width" xml:space="preserve"><value>Товщина і розмір тексту</value></data>
+  <data name="Stroke_ExtraThin" xml:space="preserve"><value>Дуже тонка</value></data>
+  <data name="Stroke_ExtraThick" xml:space="preserve"><value>Дуже товста</value></data>
   <data name="Editor_Undo" xml:space="preserve"><value>Скасувати дію</value></data>
   <data name="Editor_Redo" xml:space="preserve"><value>Повторити</value></data>
   <data name="Editor_Copy" xml:space="preserve"><value>Копіювати</value></data>

@@ -5,9 +5,11 @@ namespace ScreenCapture.Core.Annotations;
 /// <summary>Stroke thickness in image-space pixels.</summary>
 public enum StrokeWidth
 {
+    ExtraThin = 1,
     Thin = 2,
     Medium = 4,
     Thick = 8,
+    ExtraThick = 12,
 }
 
 public static class AnnotationPalette

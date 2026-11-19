@@ -298,9 +298,11 @@ public sealed class EditorSessionTests : IDisposable
     }
 
     [Theory]
+    [InlineData(StrokeWidth.ExtraThin, 12f)]
     [InlineData(StrokeWidth.Thin, 16f)]
     [InlineData(StrokeWidth.Medium, 20f)]
     [InlineData(StrokeWidth.Thick, 24f)]
+    [InlineData(StrokeWidth.ExtraThick, 32f)]
     public void AddText_UsesColorAndFontSizeFromWidth(StrokeWidth width, float fontSize)
     {
         var s = NewSession(EditorTool.Text);
