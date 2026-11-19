@@ -76,13 +76,21 @@ public sealed partial class EditorViewModel : ObservableObject
     [RelayCommand]
     private void SelectWidth(StrokeWidth width) => Width = width;
 
+    [ObservableProperty]
+    private ColorSwatch? _selectedSwatch;
+
     [RelayCommand]
     private void SelectColor(ColorSwatch swatch)
     {
         foreach (var s in Swatches)
             s.IsSelected = ReferenceEquals(s, swatch);
         Session.Color = swatch.Value;
+        SelectedSwatch = swatch;
+        ColorPicked?.Invoke(this, EventArgs.Empty);
     }
+
+    /// <summary>Raised on every pick, even of the current colour, so the view can close the picker.</summary>
+    public event EventHandler? ColorPicked;
 
     [RelayCommand(CanExecute = nameof(CanUndo))]
     private void Undo() => Session.Document.Undo();

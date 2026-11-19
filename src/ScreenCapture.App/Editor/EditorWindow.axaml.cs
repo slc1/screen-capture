@@ -29,7 +29,9 @@ public partial class EditorWindow : Window, IEditorHost
     {
         _image = image;
         _session = new EditorSession(image);
-        DataContext = new EditorViewModel(_session, services, this);
+        var vm = new EditorViewModel(_session, services, this);
+        vm.ColorPicked += (_, _) => ColorButton.Flyout?.Hide();
+        DataContext = vm;
         Surface.Session = _session;
         Surface.TextRequested += BeginText;
         PlaceOnScreen(image.Width, image.Height);

@@ -33,11 +33,10 @@
             <Setter Property="Height" Value="20" />
         </Style>
         <Style Selector="Button.swatch">
-            <Setter Property="Width" Value="24" />
-            <Setter Property="Height" Value="24" />
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="30" />
             <Setter Property="Padding" Value="0" />
-            <Setter Property="Margin" Value="1,0" />
-            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="CornerRadius" Value="15" />
             <Setter Property="BorderThickness" Value="2" />
             <Setter Property="BorderBrush" Value="Transparent" />
         </Style>
@@ -114,25 +113,42 @@
 
                         <Rectangle Classes="separator" />
 
-                        <ItemsControl ItemsSource="{Binding Swatches}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Button Classes="swatch"
-                                            Classes.selected="{Binding IsSelected}"
-                                            Command="{Binding $parent[ItemsControl].DataContext.SelectColorCommand}"
-                                            CommandParameter="{Binding}">
-                                        <Ellipse Width="16" Height="16" Fill="{Binding Brush}"
-                                                 Stroke="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                                                 StrokeThickness="1" />
-                                    </Button>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <Button x:Name="ColorButton"
+                                Classes="tool"
+                                Width="44"
+                                ToolTip.Tip="{Binding [Editor_Color], Source={x:Static loc:Loc.Instance}}">
+                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <Ellipse Width="18" Height="18" Fill="{Binding SelectedSwatch.Brush}"
+                                         Stroke="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                                         StrokeThickness="1" />
+                                <Path Data="M0,0 L3.5,3.5 L7,0" Width="7" Height="4" StrokeThickness="1.4"
+                                      VerticalAlignment="Center" />
+                            </StackPanel>
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft">
+                                    <ItemsControl ItemsSource="{Binding Swatches}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <UniformGrid Columns="4" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Classes="swatch"
+                                                        Classes.selected="{Binding IsSelected}"
+                                                        Margin="2"
+                                                        Command="{Binding $parent[ItemsControl].DataContext.SelectColorCommand}"
+                                                        CommandParameter="{Binding}">
+                                                    <Ellipse Width="20" Height="20" Fill="{Binding Brush}"
+                                                             Stroke="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                                                             StrokeThickness="1" />
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
 
                         <Rectangle Classes="separator" />
 
