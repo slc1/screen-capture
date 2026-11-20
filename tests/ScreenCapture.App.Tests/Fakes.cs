@@ -49,6 +49,31 @@ internal sealed class UnusedClipboard : IClipboardImageService
     public string? LastError => null;
 }
 
+internal sealed class FakeOcr : IOcrService
+{
+    public Func<SKBitmap, string> Result { get; set; } = _ => "recognized";
+    public List<(int Width, int Height)> Calls { get; } = new();
+
+    public string Recognize(SKBitmap image)
+    {
+        Calls.Add((image.Width, image.Height));
+        return Result(image);
+    }
+}
+
+internal sealed class FakeTextClipboard : IClipboardTextService
+{
+    public bool Succeeds { get; set; } = true;
+    public List<string> Texts { get; } = new();
+    public string? LastError => Succeeds ? null : "held";
+
+    public bool TrySetText(string text)
+    {
+        if (Succeeds) Texts.Add(text);
+        return Succeeds;
+    }
+}
+
 internal sealed class FakeAutostart : IAutostartService
 {
     public bool Enabled { get; set; }
@@ -75,12 +100,16 @@ internal sealed class TestEnvironment : IDisposable
             new UnusedClipboard(),
             new FakeAutostart(),
             new UserNotifier(),
-            new CaptureGate());
+            new CaptureGate(),
+            Ocr,
+            TextClipboard);
     }
 
     public string SettingsPath { get; }
     public SettingsStore Store { get; }
     public FakeHotkeyService Hotkeys { get; }
+    public FakeOcr Ocr { get; } = new();
+    public FakeTextClipboard TextClipboard { get; } = new();
     public AppServices Services { get; }
 
     public AppSettings Saved => Store.Load().Settings;

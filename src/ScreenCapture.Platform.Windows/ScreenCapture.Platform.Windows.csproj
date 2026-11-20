@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\ScreenCapture.Platform\ScreenCapture.Platform.csproj" />
@@ -8,6 +8,18 @@
     <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- build assets excluded: the native DLLs are embedded below instead of copied next to the exe. -->
+    <PackageReference Include="TesseractOCR" Version="5.5.2" ExcludeAssets="build" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <!-- Extracted at runtime by TesseractOcrService; resource names are its relative paths. -->
+  <ItemGroup>
+    <EmbeddedResource Include="$(PkgTesseractOCR)\x64\tesseract55.dll" LogicalName="ocr/x64/tesseract55.dll" Visible="false" />
+    <EmbeddedResource Include="$(PkgTesseractOCR)\x64\leptonica-1.85.0.dll" LogicalName="ocr/x64/leptonica-1.85.0.dll" Visible="false" />
+    <EmbeddedResource Include="Ocr\tessdata\*.traineddata" LogicalName="ocr/tessdata/%(Filename)%(Extension)" />
+  </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="ScreenCapture.Platform.Windows.Tests" />

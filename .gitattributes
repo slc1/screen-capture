@@ -9,3 +9,4 @@
 *.md text eol=crlf
 *.ico binary
 *.png binary
+*.traineddata binary

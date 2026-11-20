@@ -43,8 +43,18 @@ public sealed class SettingsStore(string path, Func<AppSettings> defaults)
 
         var area = FixHotkey(root, nameof(AppSettings.AreaHotkey), s.AreaHotkey, d.AreaHotkey, ref repaired);
         var full = FixHotkey(root, nameof(AppSettings.FullScreenHotkey), s.FullScreenHotkey, d.FullScreenHotkey, ref repaired);
+        // Added after 0.1.1: an older file lacks it, which is an upgrade, not damage.
+        var recognize = root.ContainsKey(nameof(AppSettings.RecognizeHotkey))
+            ? FixHotkey(root, nameof(AppSettings.RecognizeHotkey), s.RecognizeHotkey, d.RecognizeHotkey, ref repaired)
+            : d.RecognizeHotkey == area || d.RecognizeHotkey == full ? null : d.RecognizeHotkey;
 
-        s = s with { AreaHotkey = area, FullScreenHotkey = full, JpgQuality = Math.Clamp(s.JpgQuality, 1, 100) };
+        s = s with
+        {
+            AreaHotkey = area,
+            FullScreenHotkey = full,
+            RecognizeHotkey = recognize,
+            JpgQuality = Math.Clamp(s.JpgQuality, 1, 100),
+        };
         return new(s, repaired);
     }
 

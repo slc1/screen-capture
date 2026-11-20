@@ -10,13 +10,14 @@ public partial class TrayMenuWindow : Window
 {
     private readonly Action _captureArea;
     private readonly Action _captureFullScreen;
+    private readonly Action _recognizeArea;
     private readonly Action _openSettings;
     private readonly Action _exit;
     private readonly PixelPoint _anchor;
 
     public TrayMenuWindow()
     {
-        _captureArea = _captureFullScreen = _openSettings = _exit = () => { };
+        _captureArea = _captureFullScreen = _recognizeArea = _openSettings = _exit = () => { };
         InitializeComponent();
         Opacity = 0;
     }
@@ -24,15 +25,19 @@ public partial class TrayMenuWindow : Window
     public TrayMenuWindow(
         string? areaHotkey,
         string? fullScreenHotkey,
+        string? recognizeHotkey,
         Action captureArea,
         Action captureFullScreen,
+        Action recognizeArea,
         Action openSettings,
         Action exit) : this()
     {
         AreaHotkey.Text = areaHotkey;
         FullHotkey.Text = fullScreenHotkey;
+        RecognizeHotkey.Text = recognizeHotkey;
         _captureArea = captureArea;
         _captureFullScreen = captureFullScreen;
+        _recognizeArea = recognizeArea;
         _openSettings = openSettings;
         _exit = exit;
         _anchor = NativeCursor.Position() ?? new PixelPoint(0, 0);
@@ -48,6 +53,7 @@ public partial class TrayMenuWindow : Window
 
     private void OnArea(object? sender, RoutedEventArgs e) => Run(_captureArea);
     private void OnFullScreen(object? sender, RoutedEventArgs e) => Run(_captureFullScreen);
+    private void OnRecognize(object? sender, RoutedEventArgs e) => Run(_recognizeArea);
     private void OnSettings(object? sender, RoutedEventArgs e) => Run(_openSettings);
     private void OnExit(object? sender, RoutedEventArgs e) => Run(_exit);
 

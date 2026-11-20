@@ -8,7 +8,7 @@ public enum HotkeyAssignResult { Ok, Invalid, Duplicate, TakenByOtherApp }
 
 public sealed class HotkeyManager
 {
-    private static readonly HotkeyId[] Ids = [HotkeyId.CaptureArea, HotkeyId.CaptureFullScreen];
+    public static readonly IReadOnlyList<HotkeyId> Ids = [HotkeyId.CaptureArea, HotkeyId.CaptureFullScreen, HotkeyId.RecognizeArea];
 
     private readonly IGlobalHotkeyService _service;
     private readonly AppServices _services;
@@ -31,6 +31,7 @@ public sealed class HotkeyManager
     {
         HotkeyId.CaptureArea => _services.Settings.AreaHotkey,
         HotkeyId.CaptureFullScreen => _services.Settings.FullScreenHotkey,
+        HotkeyId.RecognizeArea => _services.Settings.RecognizeHotkey,
         _ => throw new ArgumentOutOfRangeException(nameof(id)),
     };
 
@@ -56,7 +57,7 @@ public sealed class HotkeyManager
         }
 
         if (!HotkeyRules.IsValid(hotkey)) return HotkeyAssignResult.Invalid;
-        if (hotkey == Get(Other(id))) return HotkeyAssignResult.Duplicate;
+        if (Ids.Any(other => other != id && Get(other) == hotkey)) return HotkeyAssignResult.Duplicate;
 
         var previous = Get(id);
         switch (_service.Register(id, hotkey))
@@ -86,9 +87,13 @@ public sealed class HotkeyManager
         var settings = _services.Settings;
         try
         {
-            _services.Settings = id == HotkeyId.CaptureArea
-                ? settings with { AreaHotkey = hotkey }
-                : settings with { FullScreenHotkey = hotkey };
+            _services.Settings = id switch
+            {
+                HotkeyId.CaptureArea => settings with { AreaHotkey = hotkey },
+                HotkeyId.CaptureFullScreen => settings with { FullScreenHotkey = hotkey },
+                HotkeyId.RecognizeArea => settings with { RecognizeHotkey = hotkey },
+                _ => throw new ArgumentOutOfRangeException(nameof(id)),
+            };
         }
         catch (Exception ex)
         {
@@ -101,9 +106,6 @@ public sealed class HotkeyManager
             HotkeysChanged?.Invoke(this, EventArgs.Empty);
         }
     }
-
-    private static HotkeyId Other(HotkeyId id) =>
-        id == HotkeyId.CaptureArea ? HotkeyId.CaptureFullScreen : HotkeyId.CaptureArea;
 
     private void OnPressed(object? sender, HotkeyId id)
     {

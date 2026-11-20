@@ -1,4 +1,5 @@
 using ScreenCapture.Core.Annotations;
+using ScreenCapture.Core.Rendering;
 using SkiaSharp;
 
 namespace ScreenCapture.Core.Editing;
@@ -12,6 +13,7 @@ public enum EditorTool
     Marker,
     Text,
     Blur,
+    Recognize,
 }
 
 /// <summary>Pointer interaction over one image. All coordinates are image pixels.</summary>
@@ -46,6 +48,9 @@ public sealed class EditorSession
     }
 
     public event EventHandler? Changed;
+
+    /// <summary>Raised when a Recognize gesture ends: the area to read, in whole image pixels (never empty).</summary>
+    public event EventHandler<SKRectI>? RecognizeRequested;
 
     public SKBitmap Image { get; }
 
@@ -84,6 +89,9 @@ public sealed class EditorSession
 
     public Annotation? Draft { get; private set; }
 
+    /// <summary>The area being dragged with the Recognize tool; not an annotation and never in the document.</summary>
+    public SKRect? RecognizeArea { get; private set; }
+
     public Guid? SelectedId { get; private set; }
 
     /// <summary>The selected annotation as currently drawn, including an uncommitted move.</summary>
@@ -118,6 +126,9 @@ public sealed class EditorSession
                 break;
             case EditorTool.Text:
                 break;
+            case EditorTool.Recognize:
+                RecognizeArea = Normalized(_downPoint, _downPoint);
+                break;
             default:
                 _draftId = Guid.NewGuid();
                 Draft = CreateShape(imagePt);
@@ -142,6 +153,11 @@ public sealed class EditorSession
             Draft = CreateShape(ClampToImage(imagePt));
             OnChanged();
         }
+        else if (RecognizeArea is not null)
+        {
+            RecognizeArea = Normalized(_downPoint, ClampToImage(imagePt));
+            OnChanged();
+        }
     }
 
     public void PointerUp(SKPoint imagePt)
@@ -161,6 +177,14 @@ public sealed class EditorSession
             Draft = null;
             if (IsLargeEnough(shape))
                 Document.Execute(new AddAnnotationCommand(shape));
+        }
+        else if (RecognizeArea is not null)
+        {
+            var area = ToPixels(Normalized(_downPoint, ClampToImage(imagePt)));
+            ResetGesture();
+            OnChanged();
+            RecognizeRequested?.Invoke(this, area);
+            return;
         }
 
         ResetGesture();
@@ -187,6 +211,19 @@ public sealed class EditorSession
             OnChanged();
     }
 
+    /// <summary>
+    /// The pixels to recognize in <paramref name="area"/>: the original image with only the Blur annotations applied,
+    /// so drawn shapes never damage letters and text the user blurred stays unreadable.
+    /// </summary>
+    public SKBitmap CopyForRecognition(SKRectI area)
+    {
+        using var flat = AnnotationRenderer.Flatten(Image, Document.Annotations.OfType<BlurAnnotation>().ToList());
+        using var subset = new SKBitmap();
+        if (!flat.ExtractSubset(subset, area))
+            throw new InvalidOperationException($"Could not extract {area} from a {flat.Width}x{flat.Height} image.");
+        return subset.Copy() ?? throw new InvalidOperationException("Could not copy the area.");
+    }
+
     public void AddText(SKPoint position, string text)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -200,6 +237,20 @@ public sealed class EditorSession
         if (string.IsNullOrWhiteSpace(text) || Find(id) is not TextAnnotation before || before.Text == text)
             return;
         Document.Execute(new ReplaceAnnotationCommand(before, KeepOnImage(before with { Text = text })));
+    }
+
+    private static SKRect Normalized(SKPoint a, SKPoint b) =>
+        new(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y), Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
+
+    /// <summary>Whole pixels covering the area; a click or a tiny drag means the whole image.</summary>
+    private SKRectI ToPixels(SKRect area)
+    {
+        var r = new SKRectI(
+            Math.Clamp((int)MathF.Floor(area.Left), 0, Image.Width),
+            Math.Clamp((int)MathF.Floor(area.Top), 0, Image.Height),
+            Math.Clamp((int)MathF.Ceiling(area.Right), 0, Image.Width),
+            Math.Clamp((int)MathF.Ceiling(area.Bottom), 0, Image.Height));
+        return r.Width < MinShapeSize || r.Height < MinShapeSize ? new SKRectI(0, 0, Image.Width, Image.Height) : r;
     }
 
     private SKPoint ClampToImage(SKPoint p) =>
@@ -274,6 +325,7 @@ public sealed class EditorSession
         _moveOriginal = null;
         _movePreview = null;
         Draft = null;
+        RecognizeArea = null;
     }
 
     private void OnChanged() => Changed?.Invoke(this, EventArgs.Empty);

@@ -141,4 +141,77 @@ public class SettingsStoreTests : IDisposable
         Assert.True(File.Exists(FilePath));
         Assert.False(File.Exists(FilePath + ".tmp"));
     }
+
+    private const string V011File = """
+        {
+          "Language": "uk",
+          "AreaHotkey": { "Modifiers": "Ctrl, Alt", "Key": "D5" },
+          "FullScreenHotkey": null,
+          "DefaultFormat": "Png",
+          "JpgQuality": 90,
+          "SaveFolder": "C:\\Pics\\Screenshots",
+          "StartWithWindows": false
+        }
+        """;
+
+    [Fact]
+    public void Load_FileWithoutRecognizeHotkey_GetsDefaultWithoutCorruptFlag()
+    {
+        Directory.CreateDirectory(_dir);
+        File.WriteAllText(FilePath, V011File);
+
+        var r = new SettingsStore(FilePath, Defaults).Load();
+
+        Assert.False(r.WasCorrupt);
+        Assert.Equal(HotkeyRules.DefaultFor(HotkeyId.RecognizeArea), r.Settings.RecognizeHotkey);
+        Assert.Equal("uk", r.Settings.Language);
+        Assert.Null(r.Settings.FullScreenHotkey);
+    }
+
+    [Theory]
+    [InlineData("AreaHotkey")]
+    [InlineData("FullScreenHotkey")]
+    public void Load_FileWithoutRecognizeHotkey_LeavesItClearedWhenTheDefaultIsAlreadyUsed(string owner)
+    {
+        Directory.CreateDirectory(_dir);
+        var json = V011File.Replace("\"FullScreenHotkey\": null", "\"FullScreenHotkey\": { \"Modifiers\": \"Ctrl, Alt\", \"Key\": \"D6\" }")
+            .Replace($"\"{owner}\": {{ \"Modifiers\": \"Ctrl, Alt\", \"Key\": \"D{(owner == "AreaHotkey" ? 5 : 6)}\" }}",
+                $"\"{owner}\": {{ \"Modifiers\": \"Ctrl, Alt\", \"Key\": \"D7\" }}");
+        File.WriteAllText(FilePath, json);
+
+        var r = new SettingsStore(FilePath, Defaults).Load();
+
+        Assert.False(r.WasCorrupt);
+        Assert.Null(r.Settings.RecognizeHotkey);
+        Assert.Equal("Ctrl+Alt+7", (owner == "AreaHotkey" ? r.Settings.AreaHotkey : r.Settings.FullScreenHotkey)?.ToString());
+    }
+
+    [Fact]
+    public void Load_ExplicitNullRecognizeHotkey_StaysCleared()
+    {
+        Directory.CreateDirectory(_dir);
+        File.WriteAllText(FilePath, V011File.Replace("\"StartWithWindows\": false", "\"StartWithWindows\": false, \"RecognizeHotkey\": null"));
+
+        var r = new SettingsStore(FilePath, Defaults).Load();
+
+        Assert.False(r.WasCorrupt);
+        Assert.Null(r.Settings.RecognizeHotkey);
+    }
+
+    [Fact]
+    public void Load_InvalidRecognizeHotkey_IsRepairedToDefault()
+    {
+        Directory.CreateDirectory(_dir);
+        File.WriteAllText(FilePath, V011File.Replace("\"StartWithWindows\": false",
+            "\"StartWithWindows\": false, \"RecognizeHotkey\": { \"Modifiers\": \"None\", \"Key\": \"A\" }"));
+
+        var r = new SettingsStore(FilePath, Defaults).Load();
+
+        Assert.True(r.WasCorrupt);
+        Assert.Equal(HotkeyRules.DefaultFor(HotkeyId.RecognizeArea), r.Settings.RecognizeHotkey);
+    }
+
+    [Fact]
+    public void Default_RecognizeHotkey_IsCtrlAlt7() =>
+        Assert.Equal("Ctrl+Alt+7", Defaults().RecognizeHotkey?.ToString());
 }

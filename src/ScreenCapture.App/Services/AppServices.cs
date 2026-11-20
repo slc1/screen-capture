@@ -14,7 +14,9 @@ public sealed class AppServices(
     IClipboardImageService clipboard,
     IAutostartService autostart,
     UserNotifier notifier,
-    CaptureGate gate)
+    CaptureGate gate,
+    IOcrService ocr,
+    IClipboardTextService textClipboard)
 {
     private AppSettings _settings = settings;
 
@@ -26,6 +28,8 @@ public sealed class AppServices(
     public IAutostartService Autostart { get; } = autostart;
     public UserNotifier Notifier { get; } = notifier;
     public CaptureGate Gate { get; } = gate;
+    public IOcrService Ocr { get; } = ocr;
+    public IClipboardTextService TextClipboard { get; } = textClipboard;
 
     public AppSettings Settings
     {

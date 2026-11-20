@@ -8,6 +8,7 @@ using Avalonia.Platform.Storage;
 using ScreenCapture.App.Common;
 using ScreenCapture.App.Services;
 using ScreenCapture.Core.Annotations;
+using ScreenCapture.Core.Diagnostics;
 using ScreenCapture.Core.Editing;
 using ScreenCapture.Core.Export;
 using SkiaSharp;
@@ -21,14 +22,18 @@ public partial class EditorWindow : Window, IEditorHost
     private SKBitmap? _image;
     private EditorSession? _session;
     private TextEdit? _textEdit;
+    private TextRecognizer? _recognizer;
+    private bool _recognizing;
 
     public EditorWindow() => InitializeComponent();
 
     /// <summary>Takes ownership of <paramref name="image"/> and disposes it when the window closes.</summary>
-    public EditorWindow(SKBitmap image, AppServices services) : this()
+    public EditorWindow(SKBitmap image, AppServices services, TextRecognizer recognizer) : this()
     {
         _image = image;
+        _recognizer = recognizer;
         _session = new EditorSession(image);
+        _session.RecognizeRequested += OnRecognizeRequested;
         var vm = new EditorViewModel(_session, services, this);
         vm.ColorPicked += (_, _) => ColorButton.Flyout?.Hide();
         vm.WidthPicked += (_, _) => WidthButton.Flyout?.Hide();
@@ -100,6 +105,8 @@ public partial class EditorWindow : Window, IEditorHost
         CloseTextBox();
         Surface.Dispose();
         DataContext = null;
+        if (_session is not null)
+            _session.RecognizeRequested -= OnRecognizeRequested;
         _session = null;
         _image?.Dispose();
         _image = null;
@@ -126,6 +133,49 @@ public partial class EditorWindow : Window, IEditorHost
         Position = new PixelPoint(
             work.X + (int)((work.Width - Width * scaling) / 2),
             work.Y + (int)((work.Height - Height * scaling) / 2));
+    }
+
+    /// <summary>
+    /// Copy and Save stay disabled meanwhile, so recognized text never replaces an image the user just copied.
+    /// </summary>
+    private async void OnRecognizeRequested(object? sender, SKRectI area)
+    {
+        if (_session is null || _recognizer is null || DataContext is not EditorViewModel vm)
+            return;
+        if (vm.IsBusy && !_recognizing)
+            return; // Saving or copying.
+
+        SKBitmap selection;
+        try
+        {
+            selection = _session.CopyForRecognition(area);
+        }
+        catch (Exception ex)
+        {
+            FileLog.Error("Could not copy the area to recognize", ex);
+            return;
+        }
+
+        if (_recognizing)
+        {
+            // The recognizer drops it and tells the user one is already running.
+            _ = _recognizer.RecognizeAsync(selection);
+            return;
+        }
+
+        _recognizing = true;
+        vm.IsBusy = true;
+        Cursor = new Cursor(StandardCursorType.Wait);
+        try
+        {
+            await _recognizer.RecognizeAsync(selection);
+        }
+        finally
+        {
+            _recognizing = false;
+            vm.IsBusy = false;
+            Cursor = Cursor.Default;
+        }
     }
 
     private void BeginText(SKPoint imagePoint, TextAnnotation? existing)

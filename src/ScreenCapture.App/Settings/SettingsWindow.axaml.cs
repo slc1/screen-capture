@@ -25,7 +25,7 @@ public partial class SettingsWindow : Window
         _viewModel = new SettingsViewModel(services, hotkeys);
         DataContext = _viewModel;
 
-        foreach (var box in new[] { AreaBox, FullScreenBox })
+        foreach (var box in new[] { AreaBox, FullScreenBox, RecognizeBox })
         {
             box.HotkeyCaptured += OnHotkeyCaptured;
             box.RecordingChanged += (_, _) => UpdateSuspended();
@@ -61,7 +61,7 @@ public partial class SettingsWindow : Window
     }
 
     private HotkeyBox? RecordingBox =>
-        AreaBox.IsRecording ? AreaBox : FullScreenBox.IsRecording ? FullScreenBox : null;
+        new[] { AreaBox, FullScreenBox, RecognizeBox }.FirstOrDefault(b => b.IsRecording);
 
     private void UpdateSuspended()
     {

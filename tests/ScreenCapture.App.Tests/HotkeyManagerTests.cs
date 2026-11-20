@@ -204,6 +204,37 @@ public sealed class HotkeyManagerTests : IDisposable
         Assert.Equal([HotkeyId.CaptureArea, HotkeyId.CaptureFullScreen], triggered);
     }
 
+    [Fact]
+    public void RegisterFromSettings_registers_the_recognize_hotkey()
+    {
+        _manager.RegisterFromSettings();
+
+        Assert.Equal(HotkeyRules.DefaultFor(HotkeyId.RecognizeArea), _env.Hotkeys.Registered[HotkeyId.RecognizeArea]);
+    }
+
+    [Fact]
+    public void TryAssign_recognize_hotkey_is_stored_in_settings()
+    {
+        var result = _manager.TryAssign(HotkeyId.RecognizeArea, CtrlShiftQ);
+
+        Assert.Equal(HotkeyAssignResult.Ok, result);
+        Assert.Equal(CtrlShiftQ, _env.Saved.RecognizeHotkey);
+        Assert.Equal(CtrlShiftQ, _manager.Get(HotkeyId.RecognizeArea));
+    }
+
+    [Theory]
+    [InlineData(HotkeyId.CaptureArea, HotkeyId.RecognizeArea)]
+    [InlineData(HotkeyId.RecognizeArea, HotkeyId.CaptureFullScreen)]
+    public void TryAssign_rejects_a_combination_used_by_any_other_action(HotkeyId target, HotkeyId owner)
+    {
+        var taken = _manager.Get(owner)!;
+
+        var result = _manager.TryAssign(target, taken);
+
+        Assert.Equal(HotkeyAssignResult.Duplicate, result);
+        Assert.NotEqual(taken, _manager.Get(target));
+    }
+
     private static int Count(string text, string value)
     {
         var count = 0;

@@ -53,9 +53,13 @@ public sealed partial class SettingsViewModel : ObservableObject, IDisposable
 
     public Hotkey? FullScreenHotkey => _hotkeys.Get(HotkeyId.CaptureFullScreen);
 
+    public Hotkey? RecognizeHotkey => _hotkeys.Get(HotkeyId.RecognizeArea);
+
     public string? AreaError => _errors.GetValueOrDefault(HotkeyId.CaptureArea)?.Invoke();
 
     public string? FullScreenError => _errors.GetValueOrDefault(HotkeyId.CaptureFullScreen)?.Invoke();
+
+    public string? RecognizeError => _errors.GetValueOrDefault(HotkeyId.RecognizeArea)?.Invoke();
 
     public bool IsPng
     {
@@ -186,18 +190,22 @@ public sealed partial class SettingsViewModel : ObservableObject, IDisposable
         }
     }
 
-    private void RaiseErrorChanged(HotkeyId id) =>
-        OnPropertyChanged(id == HotkeyId.CaptureArea ? nameof(AreaError) : nameof(FullScreenError));
+    private void RaiseErrorChanged(HotkeyId id) => OnPropertyChanged(id switch
+    {
+        HotkeyId.CaptureArea => nameof(AreaError),
+        HotkeyId.CaptureFullScreen => nameof(FullScreenError),
+        _ => nameof(RecognizeError),
+    });
 
     private void OnHotkeysChanged(object? sender, EventArgs e)
     {
         OnPropertyChanged(nameof(AreaHotkey));
         OnPropertyChanged(nameof(FullScreenHotkey));
+        OnPropertyChanged(nameof(RecognizeHotkey));
     }
 
     private void OnLocChanged(object? sender, PropertyChangedEventArgs e)
     {
-        RaiseErrorChanged(HotkeyId.CaptureArea);
-        RaiseErrorChanged(HotkeyId.CaptureFullScreen);
+        foreach (var id in HotkeyManager.Ids) RaiseErrorChanged(id);
     }
 }

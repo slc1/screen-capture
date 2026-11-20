@@ -19,10 +19,12 @@ public sealed class TrayController : IDisposable
     private readonly AppServices _services;
     private readonly Action _captureArea;
     private readonly Action _captureFullScreen;
+    private readonly Action _recognizeArea;
     private readonly Action _openSettings;
     private readonly TrayIcon _icon;
     private readonly NativeMenuItem _areaItem = new();
     private readonly NativeMenuItem _fullItem = new();
+    private readonly NativeMenuItem _recognizeItem = new();
     private readonly NativeMenuItem _settingsItem = new();
     private readonly NativeMenuItem _exitItem = new();
     private TrayMenuWindow? _menuWindow;
@@ -32,22 +34,27 @@ public sealed class TrayController : IDisposable
         AppServices services,
         Action<CaptureTiming> captureArea,
         Action<CaptureTiming> captureFullScreen,
+        Action<CaptureTiming> recognizeArea,
         Action openSettings)
     {
         _services = services;
         _captureArea = () => AfterMenuCloses(captureArea, new CaptureTiming("area, tray menu"));
         _captureFullScreen = () => AfterMenuCloses(captureFullScreen, new CaptureTiming("full screen, tray menu"));
+        _recognizeArea = () => AfterMenuCloses(recognizeArea, new CaptureTiming("recognize, tray menu"));
         _openSettings = openSettings;
 
         _areaItem.Click += (_, _) => AfterNativeMenuCloses(captureArea, new CaptureTiming("area, native tray menu"));
         _fullItem.Click += (_, _) =>
             AfterNativeMenuCloses(captureFullScreen, new CaptureTiming("full screen, native tray menu"));
+        _recognizeItem.Click += (_, _) =>
+            AfterNativeMenuCloses(recognizeArea, new CaptureTiming("recognize, native tray menu"));
         _settingsItem.Click += (_, _) => _openSettings();
         _exitItem.Click += (_, _) => Exit();
 
         var menu = new NativeMenu();
         menu.Add(_areaItem);
         menu.Add(_fullItem);
+        menu.Add(_recognizeItem);
         menu.Add(new NativeMenuItemSeparator());
         menu.Add(_settingsItem);
         menu.Add(_exitItem);
@@ -72,6 +79,7 @@ public sealed class TrayController : IDisposable
         _icon.ToolTipText = loc["App_Name"];
         _areaItem.Header = WithHotkey(loc["Tray_CaptureArea"], _services.Settings.AreaHotkey);
         _fullItem.Header = WithHotkey(loc["Tray_CaptureFullScreen"], _services.Settings.FullScreenHotkey);
+        _recognizeItem.Header = WithHotkey(loc["Tray_RecognizeArea"], _services.Settings.RecognizeHotkey);
         _settingsItem.Header = loc["Tray_Settings"];
         _exitItem.Header = loc["Tray_Exit"];
     }
@@ -131,8 +139,10 @@ public sealed class TrayController : IDisposable
         var window = new TrayMenuWindow(
             _services.Settings.AreaHotkey?.ToString(),
             _services.Settings.FullScreenHotkey?.ToString(),
+            _services.Settings.RecognizeHotkey?.ToString(),
             _captureArea,
             _captureFullScreen,
+            _recognizeArea,
             _openSettings,
             Exit);
         window.Closed += (_, _) =>
@@ -146,8 +156,7 @@ public sealed class TrayController : IDisposable
     private void Exit()
     {
         FileLog.Info("Exit requested");
-        _services.Hotkeys.Unregister(HotkeyId.CaptureArea);
-        _services.Hotkeys.Unregister(HotkeyId.CaptureFullScreen);
+        foreach (var id in HotkeyManager.Ids) _services.Hotkeys.Unregister(id);
         _services.Hotkeys.Dispose();
         Dispose();
         (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();

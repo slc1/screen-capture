@@ -12,6 +12,17 @@ public sealed class UserNotifier
     public void ShowError(string message)
     {
         FileLog.Error(message);
+        ShowOnUiThread(message);
+    }
+
+    public void ShowInfo(string message)
+    {
+        FileLog.Info(message);
+        ShowOnUiThread(message);
+    }
+
+    private static void ShowOnUiThread(string message)
+    {
         if (Dispatcher.UIThread.CheckAccess()) Show(message);
         else Dispatcher.UIThread.Post(() => Show(message));
     }
