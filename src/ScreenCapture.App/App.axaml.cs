@@ -91,12 +91,15 @@ public partial class App : Application
             new Win32ClipboardImageService(),
             new RegistryAutostartService("ScreenCapture", Environment.ProcessPath ?? ""),
             new UserNotifier(),
-            new CaptureGate());
+            new CaptureGate(),
+            new TesseractOcrService(TesseractOcrService.DefaultRoot),
+            new Win32ClipboardTextService());
         Services = services;
 
+        var recognizer = TextRecognizer.Create(services);
         var capture = new CaptureCoordinator(services, image =>
         {
-            var editor = new EditorWindow(image, services);
+            var editor = new EditorWindow(image, services, recognizer);
             try
             {
                 editor.Show();
@@ -108,22 +111,32 @@ public partial class App : Application
                 editor.ReleaseImages();
                 throw;
             }
-        });
+        }, selection => _ = recognizer.RecognizeAsync(selection));
 
         var hotkeys = new HotkeyManager(services.Hotkeys, services);
         hotkeys.Triggered += (_, id) =>
         {
-            var area = id == HotkeyId.CaptureArea;
-            var timing = new CaptureTiming(area ? "area, hotkey" : "full screen, hotkey");
             FileLog.Info($"Hotkey {id}");
-            if (area) capture.StartArea(timing);
-            else capture.StartFullScreen(timing);
+            var timing = new CaptureTiming($"{id}, hotkey");
+            switch (id)
+            {
+                case HotkeyId.CaptureArea:
+                    capture.StartArea(timing);
+                    break;
+                case HotkeyId.CaptureFullScreen:
+                    capture.StartFullScreen(timing);
+                    break;
+                case HotkeyId.RecognizeArea:
+                    capture.StartRecognizeArea(timing);
+                    break;
+            }
         };
 
         Tray = new TrayController(
             services,
             captureArea: capture.StartArea,
             captureFullScreen: capture.StartFullScreen,
+            recognizeArea: capture.StartRecognizeArea,
             openSettings: () => SettingsWindow.ShowOrActivate(services, hotkeys));
         hotkeys.HotkeysChanged += (_, _) => Tray?.Refresh();
 

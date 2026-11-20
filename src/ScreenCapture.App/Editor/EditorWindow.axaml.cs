@@ -8,6 +8,7 @@ using Avalonia.Platform.Storage;
 using ScreenCapture.App.Common;
 using ScreenCapture.App.Services;
 using ScreenCapture.Core.Annotations;
+using ScreenCapture.Core.Diagnostics;
 using ScreenCapture.Core.Editing;
 using ScreenCapture.Core.Export;
 using SkiaSharp;
@@ -21,14 +22,18 @@ public partial class EditorWindow : Window, IEditorHost
     private SKBitmap? _image;
     private EditorSession? _session;
     private TextEdit? _textEdit;
+    private TextRecognizer? _recognizer;
+    private bool _recognizing;
 
     public EditorWindow() => InitializeComponent();
 
     /// <summary>Takes ownership of <paramref name="image"/> and disposes it when the window closes.</summary>
-    public EditorWindow(SKBitmap image, AppServices services) : this()
+    public EditorWindow(SKBitmap image, AppServices services, TextRecognizer recognizer) : this()
     {
         _image = image;
+        _recognizer = recognizer;
         _session = new EditorSession(image);
+        _session.RecognizeRequested += OnRecognizeRequested;
         var vm = new EditorViewModel(_session, services, this);
         vm.ColorPicked += (_, _) => ColorButton.Flyout?.Hide();
         vm.WidthPicked += (_, _) => WidthButton.Flyout?.Hide();
@@ -100,6 +105,8 @@ public partial class EditorWindow : Window, IEditorHost
         CloseTextBox();
         Surface.Dispose();
         DataContext = null;
+        if (_session is not null)
+            _session.RecognizeRequested -= OnRecognizeRequested;
         _session = null;
         _image?.Dispose();
         _image = null;
@@ -126,6 +133,44 @@ public partial class EditorWindow : Window, IEditorHost
         Position = new PixelPoint(
             work.X + (int)((work.Width - Width * scaling) / 2),
             work.Y + (int)((work.Height - Height * scaling) / 2));
+    }
+
+    /// <summary>Reads the original pixels, so annotations never get in the way of the letters.</summary>
+    private async void OnRecognizeRequested(object? sender, SKRectI area)
+    {
+        if (_session is null || _recognizer is null || _recognizing)
+            return;
+
+        SKBitmap selection;
+        try
+        {
+            selection = CopyArea(_session.Image, area);
+        }
+        catch (Exception ex)
+        {
+            FileLog.Error("Could not copy the area to recognize", ex);
+            return;
+        }
+
+        _recognizing = true;
+        Cursor = new Cursor(StandardCursorType.Wait);
+        try
+        {
+            await _recognizer.RecognizeAsync(selection);
+        }
+        finally
+        {
+            _recognizing = false;
+            Cursor = Cursor.Default;
+        }
+    }
+
+    private static SKBitmap CopyArea(SKBitmap source, SKRectI area)
+    {
+        using var subset = new SKBitmap();
+        if (!source.ExtractSubset(subset, area))
+            throw new InvalidOperationException($"Could not extract {area} from a {source.Width}x{source.Height} image.");
+        return subset.Copy() ?? throw new InvalidOperationException("Could not copy the area.");
     }
 
     private void BeginText(SKPoint imagePoint, TextAnnotation? existing)

@@ -9,7 +9,8 @@
         Topmost="True"
         WindowStartupLocation="CenterScreen">
     <StackPanel Margin="20" Spacing="16">
-        <TextBlock x:Name="MessageText" TextWrapping="Wrap" />
+        <!-- Selectable so a path or link in the message can be copied. -->
+        <SelectableTextBlock x:Name="MessageText" TextWrapping="Wrap" />
         <Button HorizontalAlignment="Right"
                 MinWidth="80"
                 IsDefault="True"

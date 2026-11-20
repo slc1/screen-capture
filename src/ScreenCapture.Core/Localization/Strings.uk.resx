@@ -7,6 +7,7 @@
   <data name="App_Name" xml:space="preserve"><value>ScreenCapture</value></data>
   <data name="Tray_CaptureArea" xml:space="preserve"><value>Захопити область</value></data>
   <data name="Tray_CaptureFullScreen" xml:space="preserve"><value>Захопити весь екран</value></data>
+  <data name="Tray_RecognizeArea" xml:space="preserve"><value>Розпізнати текст з області</value></data>
   <data name="Tray_Settings" xml:space="preserve"><value>Налаштування</value></data>
   <data name="Tray_Exit" xml:space="preserve"><value>Вихід</value></data>
   <data name="Overlay_Hint" xml:space="preserve"><value>Виділіть область мишкою. Esc — скасувати.</value></data>
@@ -18,6 +19,7 @@
   <data name="Tool_Marker" xml:space="preserve"><value>Маркер</value></data>
   <data name="Tool_Text" xml:space="preserve"><value>Текст</value></data>
   <data name="Tool_Blur" xml:space="preserve"><value>Розмиття</value></data>
+  <data name="Tool_Recognize" xml:space="preserve"><value>Розпізнати текст: виділіть текст рамкою або клацніть, щоб прочитати все зображення</value></data>
   <data name="Stroke_Thin" xml:space="preserve"><value>Тонка</value></data>
   <data name="Stroke_Medium" xml:space="preserve"><value>Середня</value></data>
   <data name="Stroke_Thick" xml:space="preserve"><value>Товста</value></data>
@@ -37,6 +39,7 @@
   <data name="Settings_Language" xml:space="preserve"><value>Мова</value></data>
   <data name="Settings_HotkeyArea" xml:space="preserve"><value>Захопити область</value></data>
   <data name="Settings_HotkeyFullScreen" xml:space="preserve"><value>Захопити весь екран</value></data>
+  <data name="Settings_HotkeyRecognize" xml:space="preserve"><value>Розпізнати текст з області</value></data>
   <data name="Settings_HotkeyPrompt" xml:space="preserve"><value>Натисніть комбінацію клавіш…</value></data>
   <data name="Settings_HotkeyNone" xml:space="preserve"><value>Немає</value></data>
   <data name="Settings_HotkeyReset" xml:space="preserve"><value>Скинути</value></data>
@@ -49,9 +52,15 @@
   <data name="Error_SaveFailed" xml:space="preserve"><value>Не вдалося зберегти файл: {0}</value></data>
   <data name="Error_CaptureFailed" xml:space="preserve"><value>Не вдалося зробити знімок екрана.</value></data>
   <data name="Error_HotkeyTaken" xml:space="preserve"><value>Комбінація {0} уже використовується іншою програмою.</value></data>
-  <data name="Error_HotkeyDuplicate" xml:space="preserve"><value>Комбінація {0} уже призначена іншому режиму захоплення.</value></data>
+  <data name="Error_HotkeyDuplicate" xml:space="preserve"><value>Комбінація {0} уже призначена іншій дії.</value></data>
   <data name="Error_HotkeyInvalid" xml:space="preserve"><value>Додайте до цієї клавіші Ctrl, Alt, Shift або Win.</value></data>
   <data name="Error_SettingsCorrupt" xml:space="preserve"><value>Файл налаштувань пошкоджено. Використано налаштування за замовчуванням.</value></data>
   <data name="Error_AutostartFailed" xml:space="preserve"><value>Не вдалося змінити автозапуск разом з Windows.</value></data>
   <data name="Error_Unexpected" xml:space="preserve"><value>Неочікувана помилка. Деталі записано в журнал: {0}</value></data>
+  <data name="Ocr_NoText" xml:space="preserve"><value>У виділеній області текст не знайдено.</value></data>
+  <data name="Error_OcrRuntimeMissing" xml:space="preserve"><value>Для розпізнавання тексту потрібен Microsoft Visual C++ Redistributable (x64). Встановіть його з https://aka.ms/vs/17/release/vc_redist.x64.exe і спробуйте ще раз.</value></data>
+  <data name="Error_OcrFailed" xml:space="preserve"><value>Не вдалося розпізнати текст. Деталі записано в журнал: {0}</value></data>
+  <data name="Error_OcrCopyFailed" xml:space="preserve"><value>Текст відкрито, але не вдалося скопіювати його в буфер обміну.</value></data>
+  <data name="Error_OcrOpenFailed" xml:space="preserve"><value>Текст скопійовано в буфер обміну, але не вдалося відкрити текстовий файл: {0}</value></data>
+  <data name="Error_OcrOutputFailed" xml:space="preserve"><value>Текст розпізнано, але не вдалося ні скопіювати, ні відкрити його. Деталі записано в журнал: {0}</value></data>
 </root>

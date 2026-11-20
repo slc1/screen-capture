@@ -10,24 +10,48 @@ namespace ScreenCapture.App.Capture;
 
 /// <summary>
 /// Runs one capture at a time. <c>openEditor</c> takes ownership of the bitmap it receives and returns the
-/// shown editor window.
+/// shown editor window; <c>recognize</c> takes ownership of the selection it is given for text recognition.
 /// </summary>
 public sealed class CaptureCoordinator
 {
     private readonly AppServices _services;
     private readonly Func<SKBitmap, TopLevel> _openEditor;
+    private readonly Action<SKBitmap> _recognize;
 
-    public CaptureCoordinator(AppServices services, Func<SKBitmap, TopLevel> openEditor)
+    public CaptureCoordinator(AppServices services, Func<SKBitmap, TopLevel> openEditor, Action<SKBitmap> recognize)
     {
         _services = services;
         _openEditor = openEditor;
+        _recognize = recognize;
     }
 
     public void StartArea(CaptureTiming timing)
     {
         var lease = _services.Gate.TryAcquire();
         if (lease is null) return;
-        new AreaSession(this, lease, timing).Start();
+        new AreaSession(this, lease, timing, crop => OpenEditor(crop, null)).Start();
+    }
+
+    /// <summary>The same frozen selection as <see cref="StartArea"/>, but the selection is read as text.</summary>
+    public void StartRecognizeArea(CaptureTiming timing)
+    {
+        var lease = _services.Gate.TryAcquire();
+        if (lease is null) return;
+        new AreaSession(this, lease, timing, Recognize).Start();
+    }
+
+    private void Recognize(SKBitmap selection)
+    {
+        try
+        {
+            _recognize(selection);
+        }
+        catch (Exception ex)
+        {
+            selection.Dispose();
+            FileLog.Error("Could not start text recognition", ex);
+            _services.Notifier.ShowError(_services.Loc.Format("Error_Unexpected", Program.LogPath));
+        }
     }
 
     public void StartFullScreen(CaptureTiming timing)
@@ -77,7 +101,7 @@ public sealed class CaptureCoordinator
     }
 
     /// <summary>Owns the snapshots, the overlays and the gate lease until the first end path wins.</summary>
-    private sealed class AreaSession(CaptureCoordinator owner, CaptureLease lease, CaptureTiming timing)
+    private sealed class AreaSession(CaptureCoordinator owner, CaptureLease lease, CaptureTiming timing, Action<SKBitmap> deliver)
     {
         private readonly List<ScreenSnapshot> _snapshots = [];
         private readonly List<OverlayWindow> _windows = [];
@@ -154,7 +178,7 @@ public sealed class CaptureCoordinator
             }
 
             End();
-            owner.OpenEditor(crop, null);
+            deliver(crop);
         }
 
         private static SKBitmap Crop(SKBitmap source, SKRectI rect)

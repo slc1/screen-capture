@@ -61,6 +61,21 @@
         </StackPanel>
 
         <StackPanel>
+            <TextBlock Classes="label" Text="{Binding [Settings_HotkeyRecognize], Source={x:Static loc:Loc.Instance}}" />
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                <settings:HotkeyBox x:Name="RecognizeBox" Id="RecognizeArea" Hotkey="{Binding RecognizeHotkey}" />
+                <Button Grid.Column="1"
+                        Content="{Binding [Settings_HotkeyReset], Source={x:Static loc:Loc.Instance}}"
+                        Command="{Binding ResetCommand}" CommandParameter="{x:Static hk:HotkeyId.RecognizeArea}" />
+                <Button Grid.Column="2"
+                        Content="{Binding [Settings_HotkeyClear], Source={x:Static loc:Loc.Instance}}"
+                        Command="{Binding ClearCommand}" CommandParameter="{x:Static hk:HotkeyId.RecognizeArea}" />
+            </Grid>
+            <TextBlock Classes="error" Text="{Binding RecognizeError}"
+                       IsVisible="{Binding RecognizeError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+
+        <StackPanel>
             <TextBlock Classes="label" Text="{Binding [Settings_DefaultFormat], Source={x:Static loc:Loc.Instance}}" />
             <StackPanel Orientation="Horizontal" Spacing="16">
                 <!-- File format names are not translated. -->

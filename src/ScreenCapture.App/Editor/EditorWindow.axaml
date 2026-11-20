@@ -134,6 +134,12 @@
                                 ToolTip.Tip="{Binding [Tool_Blur], Source={x:Static loc:Loc.Instance}}">
                             <Path Data="M3,3 L17,3 L17,17 L3,17 Z M3,10 L17,10 M10,3 L10,17" />
                         </Button>
+                        <Button Classes="tool"
+                                Classes.selected="{Binding Tool, Converter={x:Static common:EqualsConverter.Instance}, ConverterParameter={x:Static core:EditorTool.Recognize}}"
+                                Command="{Binding SelectToolCommand}" CommandParameter="{x:Static core:EditorTool.Recognize}"
+                                ToolTip.Tip="{Binding [Tool_Recognize], Source={x:Static loc:Loc.Instance}}">
+                            <Path Data="M2,6 L2,2 L6,2 M14,2 L18,2 L18,6 M18,14 L18,18 L14,18 M6,18 L2,18 L2,14 M6.5,6.5 L13.5,6.5 M10,6.5 L10,14" />
+                        </Button>
 
                         <Rectangle Classes="separator" />
 

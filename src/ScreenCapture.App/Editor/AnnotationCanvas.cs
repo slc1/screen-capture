@@ -100,6 +100,8 @@ public sealed class AnnotationCanvas : Control, IDisposable
 
         if (_session.Selected is { } selected)
             DrawSelection(context, selected.Bounds);
+        if (_session.RecognizeArea is { } area)
+            DrawSelection(context, area, inflateDevicePx: 0);
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
@@ -258,12 +260,12 @@ public sealed class AnnotationCanvas : Control, IDisposable
         context.DrawRectangle(null, new ImmutablePen(Brushes.Black, px), imageDip.Inflate(1.5 * px));
     }
 
-    private void DrawSelection(DrawingContext context, SKRect bounds)
+    private void DrawSelection(DrawingContext context, SKRect bounds, int inflateDevicePx = 3)
     {
         var px = 1 / _scaling;
         var tl = ImageToDip(new SKPoint(bounds.Left, bounds.Top));
         var br = ImageToDip(new SKPoint(bounds.Right, bounds.Bottom));
-        var rect = new Rect(tl, br).Inflate(3 * px);
+        var rect = new Rect(tl, br).Inflate(inflateDevicePx * px);
         context.DrawRectangle(null, new ImmutablePen(Brushes.White, px), rect);
         context.DrawRectangle(null, new ImmutablePen(Brushes.Black, px, SelectionDash), rect);
     }

@@ -5,7 +5,7 @@ namespace ScreenCapture.Core.Hotkeys;
 [Flags]
 public enum HotkeyModifiers { None = 0, Ctrl = 1, Alt = 2, Shift = 4, Win = 8 }
 
-public enum HotkeyId { CaptureArea, CaptureFullScreen }
+public enum HotkeyId { CaptureArea, CaptureFullScreen, RecognizeArea }
 
 /// <summary>Key is an Avalonia Key enum name (e.g. "D5", "F9", "PrintScreen").</summary>
 public sealed record Hotkey(HotkeyModifiers Modifiers, string Key)
@@ -33,6 +33,7 @@ public static class HotkeyRules
     {
         HotkeyId.CaptureArea => new(HotkeyModifiers.Ctrl | HotkeyModifiers.Alt, "D5"),
         HotkeyId.CaptureFullScreen => new(HotkeyModifiers.Ctrl | HotkeyModifiers.Alt, "D6"),
+        HotkeyId.RecognizeArea => new(HotkeyModifiers.Ctrl | HotkeyModifiers.Alt, "D7"),
         _ => throw new ArgumentOutOfRangeException(nameof(id)),
     };
 

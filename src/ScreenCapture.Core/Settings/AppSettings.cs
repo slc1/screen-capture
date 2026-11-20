@@ -8,6 +8,7 @@ public sealed record AppSettings
     public string Language { get; init; } = "en";
     public Hotkey? AreaHotkey { get; init; }
     public Hotkey? FullScreenHotkey { get; init; }
+    public Hotkey? RecognizeHotkey { get; init; }
     public ImageFormatKind DefaultFormat { get; init; } = ImageFormatKind.Png;
     public int JpgQuality { get; init; } = 90;
     public string SaveFolder { get; init; } = "";
@@ -18,6 +19,7 @@ public sealed record AppSettings
         Language = language,
         AreaHotkey = HotkeyRules.DefaultFor(HotkeyId.CaptureArea),
         FullScreenHotkey = HotkeyRules.DefaultFor(HotkeyId.CaptureFullScreen),
+        RecognizeHotkey = HotkeyRules.DefaultFor(HotkeyId.RecognizeArea),
         DefaultFormat = ImageFormatKind.Png,
         JpgQuality = 90,
         SaveFolder = Path.Combine(picturesFolder, "Screenshots"),
