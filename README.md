@@ -17,7 +17,7 @@ A Windows tray screenshot tool: capture an area or the whole screen, mark it up,
 
 ## Text recognition
 
-In the editor, pick **Recognize text** and drag over the text (a click reads the whole screenshot); from the tray or with **Ctrl+Alt+7**, select an area of the screen directly. The text is copied to the clipboard and opened in the default text editor (a UTF-8 file in `%TEMP%\ScreenCapture\ocr`, removed after a day). Ukrainian and English are read together; annotations are ignored.
+In the editor, pick **Recognize text** and drag over the text (a click reads the whole screenshot); from the tray or with **Ctrl+Alt+7**, select an area of the screen directly. The text is copied to the clipboard and opened in the default text editor (a UTF-8 file in `%TEMP%\ScreenCapture\ocr`, removed after a day). Ukrainian and English are read together. Drawn annotations are ignored, and areas covered by Blur stay unreadable.
 
 Recognition runs offline with Tesseract 5.5 (`tessdata_fast` models). Its files are inside the exe and are unpacked to `%LOCALAPPDATA%\ScreenCapture\ocr` on first use. It needs the Microsoft Visual C++ 2015-2022 Redistributable (x64), which almost every Windows machine already has; without it the app shows the download link.
 

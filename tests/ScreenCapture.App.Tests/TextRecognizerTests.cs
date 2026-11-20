@@ -156,6 +156,7 @@ public sealed class TextRecognizerTests : IDisposable
         var done = await first;
 
         Assert.Equal(RecognitionOutcome.Busy, dropped);
+        Assert.Contains((Loc.Instance["Ocr_Busy"], false), _reports);
         Assert.Equal(RecognitionOutcome.Done, done);
         Assert.Equal(IntPtr.Zero, second.Handle);
         Assert.Equal([true, false], busyChanges);

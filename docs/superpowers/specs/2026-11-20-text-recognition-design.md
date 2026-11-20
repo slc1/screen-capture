@@ -16,8 +16,9 @@ Success: select the text on screen and, within a second, have it both in the cli
 3. **Output**, for both entry points:
    - the text is put on the clipboard as Unicode text;
    - the text is written to a UTF-8 `.txt` file and opened with the default app for `.txt` (Notepad by default);
-   - if no text is found, the user sees "No text found" and nothing is written or copied.
-4. Recognition reads the **original pixels**, never the annotations, so arrows and marker strokes do not damage letters.
+   - if no text is found, the user sees "No text found" and nothing is written or copied;
+   - a request while another recognition is running is dropped with a short message.
+4. Recognition reads the **original pixels** with only the **Blur** annotations applied: arrows and marker strokes do not damage letters, and text the user blurred (a password, a token) stays unreadable. Copy and Save are disabled in that editor until recognition finishes, so the text never replaces an image the user just copied.
 5. Languages: **Ukrainian and English together** in one pass (mixed text is common for the team).
 6. Works offline; nothing leaves the machine.
 
@@ -44,7 +45,7 @@ Before Tesseract: convert to 8-bit grayscale; invert when the mean luminance is 
 
 ### Packaging
 
-The app stays a single exe. The native `tesseract55.dll` and `leptonica-1.85.0.dll` (x64) and the two `.traineddata` files are embedded resources of `ScreenCapture.Platform.Windows`. On the first recognition they are extracted to `%LOCALAPPDATA%\ScreenCapture\ocr\tesseract-5.5.2\` (`x64\` and `tessdata\`), and re-extracted if a file is missing or has the wrong size. The `.traineddata` files are committed to the repo (7.5 MB) so builds work offline.
+The app stays a single exe. The native `tesseract55.dll` and `leptonica-1.85.0.dll` (x64) and the two `.traineddata` files are embedded resources of `ScreenCapture.Platform.Windows`. On the first recognition they are extracted to `%LOCALAPPDATA%\ScreenCapture\ocr\tesseract-5.5.2-fast\` (`x64\` and `tessdata\`), and re-extracted if a file is missing or has the wrong size (checked again after a failed engine start). The `.traineddata` files are committed to the repo (7.5 MB) so builds work offline.
 
 The native DLLs need the **Microsoft Visual C++ 2015–2022 runtime (x64)**. It is present on almost every Windows 10/11 machine, but not guaranteed. Before loading Tesseract the service checks that `vcruntime140.dll`, `vcruntime140_1.dll` and `msvcp140.dll` load; if not, the user sees a message with the download link (https://aka.ms/vs/17/release/vc_redist.x64.exe) instead of a crash.
 
@@ -60,7 +61,7 @@ The exe grows by about 15 MB.
 
 ### Settings compatibility
 
-`settings.json` from v0.1.x has no `RecognizeHotkey`. A missing key gets the default (Ctrl+Alt+7) **without** the "settings file was damaged" warning, because it is an upgrade, not damage. An explicit `null` still means "no hotkey".
+`settings.json` from v0.1.x has no `RecognizeHotkey`. A missing key gets the default (Ctrl+Alt+7) **without** the "settings file was damaged" warning, because it is an upgrade, not damage; if the user had already given Ctrl+Alt+7 to another action, the new hotkey starts cleared instead. An explicit `null` still means "no hotkey".
 
 ### Failure handling
 

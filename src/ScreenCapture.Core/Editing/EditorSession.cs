@@ -1,4 +1,5 @@
 using ScreenCapture.Core.Annotations;
+using ScreenCapture.Core.Rendering;
 using SkiaSharp;
 
 namespace ScreenCapture.Core.Editing;
@@ -208,6 +209,19 @@ public sealed class EditorSession
             Document.Execute(new RemoveAnnotationCommand(id));
         else
             OnChanged();
+    }
+
+    /// <summary>
+    /// The pixels to recognize in <paramref name="area"/>: the original image with only the Blur annotations applied,
+    /// so drawn shapes never damage letters and text the user blurred stays unreadable.
+    /// </summary>
+    public SKBitmap CopyForRecognition(SKRectI area)
+    {
+        using var flat = AnnotationRenderer.Flatten(Image, Document.Annotations.OfType<BlurAnnotation>().ToList());
+        using var subset = new SKBitmap();
+        if (!flat.ExtractSubset(subset, area))
+            throw new InvalidOperationException($"Could not extract {area} from a {flat.Width}x{flat.Height} image.");
+        return subset.Copy() ?? throw new InvalidOperationException("Could not copy the area.");
     }
 
     public void AddText(SKPoint position, string text)

@@ -135,16 +135,20 @@ public partial class EditorWindow : Window, IEditorHost
             work.Y + (int)((work.Height - Height * scaling) / 2));
     }
 
-    /// <summary>Reads the original pixels, so annotations never get in the way of the letters.</summary>
+    /// <summary>
+    /// Copy and Save stay disabled meanwhile, so recognized text never replaces an image the user just copied.
+    /// </summary>
     private async void OnRecognizeRequested(object? sender, SKRectI area)
     {
-        if (_session is null || _recognizer is null || _recognizing)
+        if (_session is null || _recognizer is null || DataContext is not EditorViewModel vm)
             return;
+        if (vm.IsBusy && !_recognizing)
+            return; // Saving or copying.
 
         SKBitmap selection;
         try
         {
-            selection = CopyArea(_session.Image, area);
+            selection = _session.CopyForRecognition(area);
         }
         catch (Exception ex)
         {
@@ -152,7 +156,15 @@ public partial class EditorWindow : Window, IEditorHost
             return;
         }
 
+        if (_recognizing)
+        {
+            // The recognizer drops it and tells the user one is already running.
+            _ = _recognizer.RecognizeAsync(selection);
+            return;
+        }
+
         _recognizing = true;
+        vm.IsBusy = true;
         Cursor = new Cursor(StandardCursorType.Wait);
         try
         {
@@ -161,16 +173,9 @@ public partial class EditorWindow : Window, IEditorHost
         finally
         {
             _recognizing = false;
+            vm.IsBusy = false;
             Cursor = Cursor.Default;
         }
-    }
-
-    private static SKBitmap CopyArea(SKBitmap source, SKRectI area)
-    {
-        using var subset = new SKBitmap();
-        if (!source.ExtractSubset(subset, area))
-            throw new InvalidOperationException($"Could not extract {area} from a {source.Width}x{source.Height} image.");
-        return subset.Copy() ?? throw new InvalidOperationException("Could not copy the area.");
     }
 
     private void BeginText(SKPoint imagePoint, TextAnnotation? existing)

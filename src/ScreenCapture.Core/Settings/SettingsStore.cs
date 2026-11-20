@@ -46,7 +46,7 @@ public sealed class SettingsStore(string path, Func<AppSettings> defaults)
         // Added after 0.1.1: an older file lacks it, which is an upgrade, not damage.
         var recognize = root.ContainsKey(nameof(AppSettings.RecognizeHotkey))
             ? FixHotkey(root, nameof(AppSettings.RecognizeHotkey), s.RecognizeHotkey, d.RecognizeHotkey, ref repaired)
-            : d.RecognizeHotkey;
+            : d.RecognizeHotkey == area || d.RecognizeHotkey == full ? null : d.RecognizeHotkey;
 
         s = s with
         {

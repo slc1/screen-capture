@@ -71,6 +71,7 @@ public sealed class TextRecognizer
         if (IsBusy)
         {
             image.Dispose();
+            _report(_loc["Ocr_Busy"], false);
             return RecognitionOutcome.Busy;
         }
 

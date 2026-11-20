@@ -73,6 +73,44 @@ public sealed class EditorSessionRecognizeTests : IDisposable
     }
 
     [Fact]
+    public void CopyForRecognition_keeps_blur_but_leaves_out_drawn_shapes()
+    {
+        _image.Erase(SKColors.White);
+        for (var x = 0; x < 200; x += 2)
+            for (var y = 0; y < 100; y++)
+                _image.SetPixel(x, y, SKColors.Black);
+        var s = new EditorSession(_image) { Tool = EditorTool.Blur };
+        s.PointerDown(new SKPoint(0, 0));
+        s.PointerUp(new SKPoint(50, 50));
+        s.Tool = EditorTool.Rectangle;
+        s.Color = SKColors.Red;
+        s.PointerDown(new SKPoint(100, 10));
+        s.PointerUp(new SKPoint(190, 90));
+        Assert.Equal(2, s.Document.Annotations.Count);
+
+        using var copy = s.CopyForRecognition(new SKRectI(0, 0, 200, 100));
+
+        Assert.Equal(200, copy.Width);
+        Assert.Equal(100, copy.Height);
+        // Inside the blur the 1-px stripes are gone; elsewhere the original stripes are intact and no red is drawn.
+        Assert.NotEqual(copy.GetPixel(20, 20), _image.GetPixel(20, 20));
+        Assert.Equal(_image.GetPixel(100, 10), copy.GetPixel(100, 10));
+        Assert.Equal(_image.GetPixel(101, 10), copy.GetPixel(101, 10));
+        Assert.Equal(SKColors.White, _image.GetPixel(21, 20));
+    }
+
+    [Fact]
+    public void CopyForRecognition_returns_only_the_area()
+    {
+        var s = new EditorSession(_image);
+
+        using var copy = s.CopyForRecognition(new SKRectI(10, 20, 40, 30));
+
+        Assert.Equal(30, copy.Width);
+        Assert.Equal(10, copy.Height);
+    }
+
+    [Fact]
     public void Area_is_raised_after_the_session_is_back_to_idle()
     {
         var (s, _) = NewSession();

@@ -168,6 +168,24 @@ public class SettingsStoreTests : IDisposable
         Assert.Null(r.Settings.FullScreenHotkey);
     }
 
+    [Theory]
+    [InlineData("AreaHotkey")]
+    [InlineData("FullScreenHotkey")]
+    public void Load_FileWithoutRecognizeHotkey_LeavesItClearedWhenTheDefaultIsAlreadyUsed(string owner)
+    {
+        Directory.CreateDirectory(_dir);
+        var json = V011File.Replace("\"FullScreenHotkey\": null", "\"FullScreenHotkey\": { \"Modifiers\": \"Ctrl, Alt\", \"Key\": \"D6\" }")
+            .Replace($"\"{owner}\": {{ \"Modifiers\": \"Ctrl, Alt\", \"Key\": \"D{(owner == "AreaHotkey" ? 5 : 6)}\" }}",
+                $"\"{owner}\": {{ \"Modifiers\": \"Ctrl, Alt\", \"Key\": \"D7\" }}");
+        File.WriteAllText(FilePath, json);
+
+        var r = new SettingsStore(FilePath, Defaults).Load();
+
+        Assert.False(r.WasCorrupt);
+        Assert.Null(r.Settings.RecognizeHotkey);
+        Assert.Equal("Ctrl+Alt+7", (owner == "AreaHotkey" ? r.Settings.AreaHotkey : r.Settings.FullScreenHotkey)?.ToString());
+    }
+
     [Fact]
     public void Load_ExplicitNullRecognizeHotkey_StaysCleared()
     {

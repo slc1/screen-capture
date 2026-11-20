@@ -58,6 +58,7 @@
   <data name="Error_AutostartFailed" xml:space="preserve"><value>Не вдалося змінити автозапуск разом з Windows.</value></data>
   <data name="Error_Unexpected" xml:space="preserve"><value>Неочікувана помилка. Деталі записано в журнал: {0}</value></data>
   <data name="Ocr_NoText" xml:space="preserve"><value>У виділеній області текст не знайдено.</value></data>
+  <data name="Ocr_Busy" xml:space="preserve"><value>Розпізнавання тексту вже виконується. Спробуйте ще раз, коли воно завершиться.</value></data>
   <data name="Error_OcrRuntimeMissing" xml:space="preserve"><value>Для розпізнавання тексту потрібен Microsoft Visual C++ Redistributable (x64). Встановіть його з https://aka.ms/vs/17/release/vc_redist.x64.exe і спробуйте ще раз.</value></data>
   <data name="Error_OcrFailed" xml:space="preserve"><value>Не вдалося розпізнати текст. Деталі записано в журнал: {0}</value></data>
   <data name="Error_OcrCopyFailed" xml:space="preserve"><value>Текст відкрито, але не вдалося скопіювати його в буфер обміну.</value></data>

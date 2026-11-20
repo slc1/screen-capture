@@ -59,6 +59,8 @@ public sealed class TesseractOcrService : IOcrService
         }
         catch (Exception ex)
         {
+            // Re-check the files next time: a cleaner or antivirus may have removed one since extraction.
+            _extracted = false;
             throw new OcrUnavailableException(OcrUnavailableReason.LoadFailed, $"Could not start Tesseract from '{Root}'.", ex);
         }
     }
